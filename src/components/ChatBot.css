@@ -189,6 +189,30 @@
   white-space: nowrap;
 }
 .chatbot-suggestions button:hover { background: var(--c-brown-50); }
+.chatbot-suggestions::-webkit-scrollbar { display: none; }
+
+.chatbot-suggestions-wrap { position: relative; }
+.chatbot-sugg-arrow {
+  position: absolute;
+  top: calc(50% - 5px);
+  transform: translateY(-50%);
+  z-index: 2;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-full);
+  border: 1px solid var(--c-brown-300);
+  background: var(--c-white);
+  color: var(--c-brown-700);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 0 0 6px var(--c-white), 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.chatbot-sugg-arrow:hover { background: var(--c-brown-50); }
+.chatbot-sugg-arrow.right { right: 6px; }
+.chatbot-sugg-arrow.left { left: 6px; }
+.chatbot-sugg-arrow.left svg { transform: rotate(180deg); }
 
 .chatbot-input {
   display: flex;

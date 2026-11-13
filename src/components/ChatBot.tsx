@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { Pet, ONG, AbandonmentReport, FoodBankItem } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { getBotReply, getWelcome, type BotAction, type BotReply } from '../chatbot/botEngine';
-import { PawPrint, Send, X } from './Icons';
+import { ChevronRight, PawPrint, Send, X } from './Icons';
 import './ChatBot.css';
 
 interface ChatMessage extends BotReply {
@@ -48,6 +48,21 @@ export const ChatBot: React.FC<ChatBotProps> = ({
   const listRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const timerRef = useRef<number | undefined>(undefined);
+  const suggRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const updateSuggArrows = () => {
+    const el = suggRef.current;
+    if (!el) return;
+    setCanScrollLeft(el.scrollLeft > 2);
+    setCanScrollRight(el.scrollLeft + el.clientWidth < el.scrollWidth - 2);
+  };
+
+  const scrollSugg = (dir: 1 | -1) => {
+    const el = suggRef.current;
+    if (el) el.scrollBy({ left: dir * el.clientWidth * 0.7, behavior: 'smooth' });
+  };
 
   const ctx = { pets, ongs, reports, foodItems, user, isLoggedIn, isONG };
 
@@ -112,6 +127,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({
 
   const lastBot = [...messages].reverse().find(m => m.from === 'bot');
 
+  useEffect(() => {
+    const el = suggRef.current;
+    if (el) el.scrollLeft = 0;
+    updateSuggArrows();
+    window.addEventListener('resize', updateSuggArrows);
+    return () => window.removeEventListener('resize', updateSuggArrows);
+  }, [lastBot?.suggestions, typing, open]);
+
   return (
     <>
       {open && (
@@ -166,10 +189,22 @@ export const ChatBot: React.FC<ChatBotProps> = ({
           </div>
 
           {!typing && lastBot?.suggestions && (
-            <div className="chatbot-suggestions">
-              {lastBot.suggestions.map(s => (
-                <button key={s} onClick={() => send(s)}>{s}</button>
-              ))}
+            <div className="chatbot-suggestions-wrap">
+              {canScrollLeft && (
+                <button type="button" className="chatbot-sugg-arrow left" onClick={() => scrollSugg(-1)} aria-label="Ver sugestões anteriores">
+                  <ChevronRight size={14} />
+                </button>
+              )}
+              <div className="chatbot-suggestions" ref={suggRef} onScroll={updateSuggArrows}>
+                {lastBot.suggestions.map(s => (
+                  <button key={s} onClick={() => send(s)}>{s}</button>
+                ))}
+              </div>
+              {canScrollRight && (
+                <button type="button" className="chatbot-sugg-arrow right" onClick={() => scrollSugg(1)} aria-label="Ver mais sugestões">
+                  <ChevronRight size={14} />
+                </button>
+              )}
             </div>
           )}
 

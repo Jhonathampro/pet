@@ -290,7 +290,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenAd
                 style={{ gap: '6px' }}
               >
                 <Plus size={16} />
-                <span>+ Cadastrar pet</span>
+                <span>Cadastrar Pet</span>
               </button>
             ) : (
               /* Denunciar abandono quick action */

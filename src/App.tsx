@@ -6,6 +6,7 @@ import type { Pet, ONG, AbandonmentReport, FoodBankItem } from './types';
 // Components
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
+import { ChatBot } from './components/ChatBot';
 
 // Modals
 import { PetDetailsModal } from './components/Modals/PetDetailsModal';
@@ -256,6 +257,18 @@ function MainApp() {
 
       {/* Global Footer */}
       <Footer onNavigate={handleNavigate} />
+
+      {/* Assistente virtual (chatbot) */}
+      <ChatBot
+        pets={pets}
+        ongs={ongs}
+        reports={reports}
+        foodItems={foodItems}
+        onNavigate={handleNavigate}
+        onSelectPet={handleSelectPet}
+        onSelectONG={handleSelectONG}
+        onOpenAuthorities={() => handleOpenAuthoritiesModal()}
+      />
 
       {/* ===================== GLOBAL MODALS ===================== */}
       {/* 1. Pet Details Modal */}

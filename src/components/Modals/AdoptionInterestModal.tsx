@@ -88,7 +88,7 @@ export const AdoptionInterestModal: React.FC<AdoptionInterestModalProps> = ({
                 Interesse de Adoção
               </h3>
               <p style={{ fontSize: '0.84rem', color: 'var(--c-gray-600)' }}>
-                Demonstrar interesse por <strong>{pet.name}</strong> • {pet.ongName}
+                Registrar interesse por <strong>{pet.name}</strong> • {pet.ongName}
               </p>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ONG, Pet } from '../types';
+import type { ONG, Pet } from '../types';
 import { 
   Building2, 
   MapPin, 
@@ -12,7 +12,8 @@ import {
   Phone, 
   Mail, 
   Instagram, 
-  Heart 
+  Heart,
+  Syringe
 } from '../components/Icons';
 
 interface NGOsPageProps {
@@ -32,6 +33,7 @@ export const NGOsPage: React.FC<NGOsPageProps> = ({
   const [filterReceivesFood, setFilterReceivesFood] = useState(false);
   const [filterProvidesFood, setFilterProvidesFood] = useState(false);
   const [filterDonations, setFilterDonations] = useState(false);
+  const [filterVaccination, setFilterVaccination] = useState(false);
   const [selectedCity, setSelectedCity] = useState('Todas');
 
   const cities = useMemo(() => {
@@ -54,10 +56,11 @@ export const NGOsPage: React.FC<NGOsPageProps> = ({
       if (filterReceivesFood && !ong.acceptsFood) return false;
       if (filterProvidesFood && !ong.providesFood) return false;
       if (filterDonations && !ong.acceptsDonations) return false;
+      if (filterVaccination && !ong.offersVaccination) return false;
 
       return true;
     });
-  }, [ongs, searchQuery, selectedCity, filterReceivesFood, filterProvidesFood, filterDonations]);
+  }, [ongs, searchQuery, selectedCity, filterReceivesFood, filterProvidesFood, filterDonations, filterVaccination]);
 
   return (
     <div style={{ backgroundColor: 'var(--c-sand-50)', minHeight: '80vh', paddingBottom: '90px' }}>
@@ -183,6 +186,27 @@ export const NGOsPage: React.FC<NGOsPageProps> = ({
               />
               <span>✓ Aceita doações financeiras (PIX/Banco)</span>
             </label>
+
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              padding: '8px 14px',
+              borderRadius: 'var(--r-md)',
+              border: filterVaccination ? '1.5px solid var(--c-brown-800)' : '1px solid var(--c-sand-300)',
+              backgroundColor: filterVaccination ? 'var(--c-brown-50)' : 'transparent',
+              cursor: 'pointer',
+              fontSize: '0.88rem',
+              fontWeight: 600
+            }}>
+              <input
+                type="checkbox"
+                checked={filterVaccination}
+                onChange={(e) => setFilterVaccination(e.target.checked)}
+              />
+              <Syringe size={14} color="var(--c-brown-700)" />
+              <span>✓ Oferece vacinação de cães</span>
+            </label>
           </div>
         </div>
 
@@ -212,9 +236,16 @@ export const NGOsPage: React.FC<NGOsPageProps> = ({
                     }}
                   />
                   <div style={{ flex: 1 }}>
-                    <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--c-black-900)', marginBottom: '4px' }}>
-                      {ong.name}
-                    </h3>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '4px' }}>
+                      <h3 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--c-black-900)', margin: 0 }}>
+                        {ong.name}
+                      </h3>
+                      {ong.offersVaccination && (
+                        <span className="badge badge-earth" style={{ fontSize: '0.7rem', padding: '2px 8px', whiteSpace: 'nowrap' }}>
+                          💉 Vacina Cães
+                        </span>
+                      )}
+                    </div>
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -251,6 +282,11 @@ export const NGOsPage: React.FC<NGOsPageProps> = ({
                     gap: '6px',
                     fontSize: '0.82rem'
                   }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: ong.offersVaccination ? '#15803d' : '#9ca3af' }}>
+                      <Check size={14} strokeWidth={3} />
+                      <span><strong>{ong.offersVaccination ? '✓ Oferece vacinação de cães na sede' : '✕ Não oferece vacinação'}</strong></span>
+                    </div>
+
                     <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: ong.acceptsFood ? '#15803d' : '#9ca3af' }}>
                       <Check size={14} strokeWidth={3} />
                       <span><strong>{ong.acceptsFood ? 'Recebe ração' : 'Não recebe ração no momento'}</strong></span>

@@ -7,7 +7,10 @@ import {
   DollarSign, 
   Bone, 
   MapPin, 
-  PawPrint
+  PawPrint,
+  Syringe,
+  Calendar,
+  Clock
 } from '../components/Icons';
 
 interface UserDashboardProps {
@@ -20,12 +23,13 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
   onOpenReportModal
 }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'interests' | 'reports' | 'donations' | 'food'>('interests');
+  const [activeTab, setActiveTab] = useState<'interests' | 'reports' | 'donations' | 'food' | 'vaccinations'>('interests');
 
   const allInterests = DataStore.getAdoptionInterests();
   const allReports = DataStore.getReports();
   const allDonations = DataStore.getDonations();
   const allFood = DataStore.getFoodItems();
+  const allVaccinations = DataStore.getVaccinationRequests();
 
   // User-specific items for Lucas
   const myInterests = allInterests.filter(i => 
@@ -42,6 +46,10 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
 
   const myFoodItems = allFood.filter(f => 
     !user || f.orgOrUserName.includes('Lucas') || f.role === 'user'
+  );
+
+  const myVaccinations = allVaccinations.filter(v =>
+    !user || v.tutorEmail === user.email || v.tutorName.includes('Lucas')
   );
 
   return (
@@ -182,7 +190,7 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               {myDonations.length}
             </div>
             <div style={{ fontSize: '0.8rem', color: 'var(--c-gray-500)', marginTop: '8px' }}>
-              Apoios financeiros simulados
+              Doações realizadas
             </div>
           </div>
 
@@ -210,6 +218,31 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
               No banco de ração
             </div>
           </div>
+
+          {/* Card 5: Minhas vacinações */}
+          <div
+            onClick={() => setActiveTab('vaccinations')}
+            className="card"
+            style={{
+              padding: '24px',
+              cursor: 'pointer',
+              border: activeTab === 'vaccinations' ? '2px solid var(--c-brown-800)' : '1px solid var(--c-sand-200)',
+              backgroundColor: activeTab === 'vaccinations' ? 'var(--c-sand-50)' : 'var(--c-white)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <span style={{ fontSize: '0.88rem', fontWeight: 700, color: 'var(--c-gray-600)' }}>
+                Vacinações agendadas
+              </span>
+              <Syringe size={20} color="var(--c-brown-700)" />
+            </div>
+            <div style={{ fontSize: '2.4rem', fontWeight: 800, color: 'var(--c-black-900)', lineHeight: 1 }}>
+              {myVaccinations.length}
+            </div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--c-gray-500)', marginTop: '8px' }}>
+              Em ONGs parceiras
+            </div>
+          </div>
         </div>
 
         {/* Tab Navigation */}
@@ -219,6 +252,12 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
             onClick={() => setActiveTab('interests')}
           >
             Meus interesses em adoção ({myInterests.length})
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'vaccinations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('vaccinations')}
+          >
+            💉 Vacinações ({myVaccinations.length})
           </button>
           <button
             className={`tab-btn ${activeTab === 'reports' ? 'active' : ''}`}
@@ -306,6 +345,112 @@ export const UserDashboard: React.FC<UserDashboardProps> = ({
                       className="btn btn-sm btn-outline"
                     >
                       Ver Detalhes do Pet
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Tab: Vacinações do Usuário */}
+        {activeTab === 'vaccinations' && (
+          <div>
+            {myVaccinations.length === 0 ? (
+              <div style={{
+                backgroundColor: 'var(--c-white)',
+                borderRadius: 'var(--r-xl)',
+                padding: '48px',
+                textAlign: 'center',
+                border: '1.5px dashed var(--c-sand-300)'
+              }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--c-sand-100)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--c-brown-800)',
+                  marginBottom: '16px'
+                }}>
+                  <Syringe size={28} />
+                </div>
+                <h4 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--c-black-900)', marginBottom: '8px' }}>
+                  Nenhum agendamento de vacina solicitado
+                </h4>
+                <p style={{ color: 'var(--c-gray-600)', fontSize: '0.9rem', marginBottom: '20px' }}>
+                  Encontre uma ONG que oferece serviço de vacinação comunitária e agende para o seu cãozinho.
+                </p>
+                <button onClick={() => onNavigate('ongs')} className="btn btn-earth">
+                  Buscar ONGs com Vacinação
+                </button>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {myVaccinations.map((vac) => (
+                  <div
+                    key={vac.id}
+                    className="card"
+                    style={{
+                      padding: '24px',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '20px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '18px' }}>
+                      <div style={{
+                        width: '56px',
+                        height: '56px',
+                        borderRadius: '14px',
+                        backgroundColor: 'var(--c-brown-100)',
+                        color: 'var(--c-brown-900)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Syringe size={26} />
+                      </div>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--c-brown-800)', backgroundColor: 'var(--c-sand-100)', padding: '2px 8px', borderRadius: '4px' }}>
+                            {vac.protocol}
+                          </span>
+                          <h4 style={{ fontSize: '1.25rem', fontWeight: 800, color: 'var(--c-black-900)', margin: 0 }}>
+                            {vac.dogName} ({vac.breed} • {vac.size})
+                          </h4>
+                          <span className={`badge ${
+                            vac.status === 'Concluído' ? 'badge-confirmed' :
+                            vac.status === 'Agendado' ? 'badge-active' :
+                            vac.status === 'Cancelado' ? 'badge-alert' : 'badge-earth'
+                          }`}>
+                            {vac.status}
+                          </span>
+                        </div>
+                        <div style={{ fontSize: '0.88rem', color: 'var(--c-black-800)', marginTop: '6px' }}>
+                          Vacina: <strong style={{ color: 'var(--c-brown-900)' }}>{vac.vaccineType}</strong> • ONG: <strong>{vac.ongName}</strong>
+                        </div>
+                        <div style={{ fontSize: '0.82rem', color: 'var(--c-gray-600)', marginTop: '4px' }}>
+                          Data sugerida: <strong>{vac.preferredDate} ({vac.preferredShift})</strong> • Solicitado por {vac.tutorName}
+                        </div>
+                        {vac.notes && (
+                          <div style={{ fontSize: '0.82rem', color: 'var(--c-gray-700)', marginTop: '4px', fontStyle: 'italic' }}>
+                            "{vac.notes}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => onNavigate('ongs')}
+                      className="btn btn-sm btn-outline"
+                    >
+                      Ver ONG
                     </button>
                   </div>
                 ))}

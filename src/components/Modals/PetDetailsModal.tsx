@@ -88,6 +88,9 @@ export const PetDetailsModal: React.FC<PetDetailsModalProps> = ({
             <img
               src={images[activeImageIndex] || pet.image}
               alt={pet.name}
+              onError={(e) => {
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80';
+              }}
               style={{
                 width: '100%',
                 height: '100%',

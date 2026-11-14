@@ -42,7 +42,7 @@ export const FinancialDonateModal: React.FC<FinancialDonateModalProps> = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleSimulateDonation = () => {
+  const handleConfirmDonation = () => {
     if (currentAmount <= 0) return;
 
     DataStore.addDonation({
@@ -111,22 +111,12 @@ export const FinancialDonateModal: React.FC<FinancialDonateModalProps> = ({
                 <CheckCircle2 size={36} />
               </div>
               <h3 style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--c-black-900)', marginBottom: '8px' }}>
-                Simulação de Doação Registrada!
+                Doação Registrada com Sucesso!
               </h3>
               <p style={{ fontSize: '0.95rem', color: 'var(--c-gray-600)', maxWidth: '440px', margin: '0 auto 20px', lineHeight: 1.6 }}>
-                Valor simulado de <strong>R$ {currentAmount.toFixed(2).replace('.', ',')}</strong> registrado com sucesso para <strong>{ong.name}</strong>. A contribuição já reflete nos painéis informativos da plataforma.
+                Valor de <strong>R$ {currentAmount.toFixed(2).replace('.', ',')}</strong> registrado com sucesso para <strong>{ong.name}</strong>. A contribuição já reflete nos painéis informativos da plataforma.
               </p>
-              <div style={{
-                backgroundColor: 'var(--c-sand-100)',
-                padding: '14px 18px',
-                borderRadius: 'var(--r-md)',
-                fontSize: '0.82rem',
-                color: 'var(--c-gray-700)',
-                maxWidth: '440px',
-                margin: '0 auto 24px'
-              }}>
-                Nota: Como o PetHub é um protótipo, nenhuma cobrança real foi efetuada. Em ambiente real, você realizaria a transferência diretamente pelo app do seu banco.
-              </div>
+              
               <button onClick={onClose} className="btn btn-primary" style={{ minWidth: '160px' }}>
                 Concluir
               </button>
@@ -293,12 +283,12 @@ export const FinancialDonateModal: React.FC<FinancialDonateModalProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={handleSimulateDonation}
+                  onClick={handleConfirmDonation}
                   className="btn btn-earth"
                   disabled={currentAmount <= 0}
                 >
                   <Heart size={16} fill="currentColor" />
-                  <span>Simular Confirmação de Doação (R$ {currentAmount.toFixed(2)})</span>
+                  <span>Confirmar Doação (R$ {currentAmount.toFixed(2)})</span>
                 </button>
               </div>
             </>

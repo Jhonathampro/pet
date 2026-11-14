@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { FoodBankItem } from '../types';
+import { useAuth } from '../context/AuthContext';
 import { 
   Bone, 
   Heart, 
@@ -25,6 +26,7 @@ export const FoodBankPage: React.FC<FoodBankPageProps> = ({
   onOpenDonateModal,
   onOpenRequestModal
 }) => {
+  const { isONG } = useAuth();
   const [activeTab, setActiveTab] = useState<'all' | 'need' | 'available'>('all');
   const [searchCity, setSearchCity] = useState('');
   const [filterType, setFilterType] = useState('Todos');
@@ -86,23 +88,42 @@ export const FoodBankPage: React.FC<FoodBankPageProps> = ({
             </div>
 
             <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-              <button
-                onClick={() => onOpenDonateModal()}
-                className="btn btn-earth"
-                style={{ gap: '8px' }}
-              >
-                <Plus size={18} />
-                <span>Tenho Ração para Doar</span>
-              </button>
+              {isONG ? (
+                <div style={{
+                  backgroundColor: 'rgba(255,255,255,0.08)',
+                  border: '1px solid rgba(255,255,255,0.18)',
+                  borderRadius: 'var(--r-md)',
+                  padding: '12px 20px',
+                  color: '#d1c4b5',
+                  fontSize: '0.9rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px'
+                }}>
+                  <Building2 size={18} color="#f59e0b" />
+                  <span>Gerencie a situação de ração da sua ONG no <strong>Painel da ONG</strong>.</span>
+                </div>
+              ) : (
+                <>
+                  <button
+                    onClick={() => onOpenDonateModal()}
+                    className="btn btn-earth"
+                    style={{ gap: '8px' }}
+                  >
+                    <Plus size={18} />
+                    <span>Tenho Ração para Doar</span>
+                  </button>
 
-              <button
-                onClick={() => onOpenRequestModal()}
-                className="btn btn-outline-white"
-                style={{ gap: '8px' }}
-              >
-                <Bone size={18} />
-                <span>Solicitar Ração</span>
-              </button>
+                  <button
+                    onClick={() => onOpenRequestModal()}
+                    className="btn btn-outline-white"
+                    style={{ gap: '8px' }}
+                  >
+                    <Bone size={18} />
+                    <span>Solicitar Ração</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>
         </div>
@@ -328,32 +349,34 @@ export const FoodBankPage: React.FC<FoodBankPageProps> = ({
                   </div>
                 </div>
 
-                {/* Card Action Footer Required by Prompt */}
-                <div style={{
-                  padding: '16px 24px',
-                  backgroundColor: 'var(--c-sand-50)',
-                  borderTop: '1px solid var(--c-sand-200)'
-                }}>
-                  {isNeed ? (
-                    <button
-                      onClick={() => onOpenDonateModal(item)}
-                      className="btn btn-earth"
-                      style={{ width: '100%' }}
-                    >
-                      <Heart size={16} fill="currentColor" />
-                      <span>Quero doar</span>
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => onOpenRequestModal(item)}
-                      className="btn btn-primary"
-                      style={{ width: '100%' }}
-                    >
-                      <Bone size={16} />
-                      <span>Tenho interesse</span>
-                    </button>
-                  )}
-                </div>
+                {/* Card Action Footer */}
+                {!isONG && (
+                  <div style={{
+                    padding: '16px 24px',
+                    backgroundColor: 'var(--c-sand-50)',
+                    borderTop: '1px solid var(--c-sand-200)'
+                  }}>
+                    {isNeed ? (
+                      <button
+                        onClick={() => onOpenDonateModal(item)}
+                        className="btn btn-earth"
+                        style={{ width: '100%' }}
+                      >
+                        <Heart size={16} fill="currentColor" />
+                        <span>Quero doar</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => onOpenRequestModal(item)}
+                        className="btn btn-primary"
+                        style={{ width: '100%' }}
+                      >
+                        <Bone size={16} />
+                        <span>Tenho interesse</span>
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}

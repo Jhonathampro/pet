@@ -17,6 +17,7 @@ import { FinancialDonateModal } from './components/Modals/FinancialDonateModal';
 import { DonateFoodModal, RequestFoodModal } from './components/Modals/FoodBankModals';
 import { AddPetModal } from './components/Modals/AddPetModal';
 import { CorroborateModal } from './components/Modals/CorroborateModal';
+import { VaccinationModal } from './components/Modals/VaccinationModal';
 
 // Pages
 import { Home } from './pages/Home';
@@ -49,6 +50,7 @@ function MainApp() {
   const [loginRequiredOpen, setLoginRequiredOpen] = useState(false);
   const [donateONG, setDonateONG] = useState<ONG | null>(null);
   const [profileONG, setProfileONG] = useState<ONG | null>(null);
+  const [vaccinationONG, setVaccinationONG] = useState<ONG | null>(null);
   const [corroborateReport, setCorroborateReport] = useState<AbandonmentReport | null>(null);
   const [authoritiesModalOpen, setAuthoritiesModalOpen] = useState(false);
   const [authoritiesReportInfo, setAuthoritiesReportInfo] = useState<{ address: string; neighborhood: string; city: string; date: string } | undefined>(undefined);
@@ -74,8 +76,21 @@ function MainApp() {
     refreshData();
   }, [currentTab]);
 
-  // Handle navigation
+  // Handle navigation — bloqueia rotas de usuário para ONG e vice-versa
   const handleNavigate = (tab: string, meta?: any) => {
+    // Rotas exclusivas de usuário: redireciona ONG ao dashboard
+    const ongBlockedRoutes = ['adotar', 'ongs', 'doacoes', 'banco-racao', 'dashboard-usuario'];
+    if (isONG && ongBlockedRoutes.includes(tab)) {
+      setCurrentTab('dashboard-ong');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+    // Rota exclusiva de ONG: redireciona usuário ao home
+    if (!isONG && tab === 'dashboard-ong') {
+      setCurrentTab('dashboard-usuario');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
     if (tab === 'ong-profile' && meta) {
       const found = ongs.find(o => o.id === meta);
       if (found) {
@@ -135,11 +150,15 @@ function MainApp() {
             ongs={ongs}
             onNavigate={handleNavigate}
             onSelectPet={handleSelectPet}
+            onOpenAddPetModal={() => {
+              setPetToEdit(null);
+              setAddPetOpen(true);
+            }}
           />
         )}
 
-        {/* /adotar - Animais disponíveis */}
-        {currentTab === 'adotar' && (
+        {/* /adotar - Animais disponíveis (apenas usuário/visitante) */}
+        {currentTab === 'adotar' && !isONG && (
           <AdoptionPage
             pets={pets}
             ongs={ongs}
@@ -148,8 +167,8 @@ function MainApp() {
           />
         )}
 
-        {/* /ongs - Lista de ONGs */}
-        {currentTab === 'ongs' && (
+        {/* /ongs - Lista de ONGs (apenas usuário/visitante) */}
+        {currentTab === 'ongs' && !isONG && (
           <NGOsPage
             ongs={ongs}
             pets={pets}
@@ -166,6 +185,7 @@ function MainApp() {
             onBack={() => setCurrentTab('ongs')}
             onSelectPet={handleSelectPet}
             onOpenFinancialDonate={(ong) => setDonateONG(ong)}
+            onOpenVaccinationModal={(ong) => setVaccinationONG(ong)}
           />
         )}
 
@@ -205,24 +225,24 @@ function MainApp() {
           />
         )}
 
-        {/* /doacoes - Doações */}
-        {currentTab === 'doacoes' && (
+        {/* /doacoes - Doações (apenas usuário/visitante) */}
+        {currentTab === 'doacoes' && !isONG && (
           <FinancialDonationsPage
             ongs={ongs}
             onOpenFinancialDonate={(ong) => setDonateONG(ong)}
           />
         )}
 
-        {/* /dashboard - Dashboard do usuário */}
-        {currentTab === 'dashboard-usuario' && (
+        {/* /dashboard - Dashboard do usuário (apenas usuário logado) */}
+        {currentTab === 'dashboard-usuario' && !isONG && (
           <UserDashboard
             onNavigate={handleNavigate}
             onOpenReportModal={() => handleNavigate('denunciar')}
           />
         )}
 
-        {/* /ong/dashboard, /ong/animais, /ong/animais/novo - Dashboard da ONG */}
-        {(currentTab === 'dashboard-ong' || currentTab === 'ong-animais' || currentTab === 'ong-novo-animal') && (
+        {/* /ong/dashboard - Dashboard da ONG (apenas ONG logada) */}
+        {(currentTab === 'dashboard-ong' || currentTab === 'ong-animais' || currentTab === 'ong-novo-animal') && isONG && (
           <NGODashboard
             initialTab={currentTab === 'ong-animais' ? 'animals' : 'animals'}
             onOpenAddPetModal={() => {
@@ -295,9 +315,9 @@ function MainApp() {
         }}
       />
 
-      {/* 3. Adoption Interest Form Modal (Only for logged in user) */}
+      {/* 3. Adoption Interest Form Modal (somente para usuário logado, nunca ONG) */}
       <AdoptionInterestModal
-        isOpen={!!interestPet}
+        isOpen={!!interestPet && !isONG}
         onClose={() => setInterestPet(null)}
         pet={interestPet}
         onSuccess={() => {
@@ -305,9 +325,9 @@ function MainApp() {
         }}
       />
 
-      {/* 4. Financial Donation Modal (PIX & Bank) */}
+      {/* 4. Financial Donation Modal (somente usuário, nunca ONG) */}
       <FinancialDonateModal
-        isOpen={!!donateONG}
+        isOpen={!!donateONG && !isONG}
         onClose={() => setDonateONG(null)}
         ong={donateONG}
         onSuccess={() => {
@@ -366,6 +386,16 @@ function MainApp() {
         isOpen={!!corroborateReport}
         onClose={() => setCorroborateReport(null)}
         report={corroborateReport}
+        onSuccess={() => {
+          refreshData();
+        }}
+      />
+
+      {/* 10. Dog Vaccination Request Modal */}
+      <VaccinationModal
+        isOpen={!!vaccinationONG}
+        onClose={() => setVaccinationONG(null)}
+        ong={vaccinationONG}
         onSuccess={() => {
           refreshData();
         }}

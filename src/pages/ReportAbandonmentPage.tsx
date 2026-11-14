@@ -187,7 +187,7 @@ export const ReportAbandonmentPage: React.FC<ReportAbandonmentPageProps> = ({
                     />
                     <div style={{ flex: 1 }}>
                       <div style={{ fontSize: '0.8rem', color: 'var(--c-gray-600)', marginBottom: '8px' }}>
-                        Selecione uma imagem de exemplo para o protótipo:
+                        Selecione uma imagem:
                       </div>
                       <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                         {PRESET_ABANDONED_PHOTOS.map((p, idx) => (

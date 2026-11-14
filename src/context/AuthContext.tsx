@@ -46,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     return {
       success: false,
-      message: 'E-mail ou senha incorretos. Utilize as credenciais mockadas: lucas@gmail.com ou SalvaPet@gmail.com com a senha chave123.'
+      message: 'E-mail ou senha incorretos. Verifique os dados digitados e tente novamente.'
     };
   };
 

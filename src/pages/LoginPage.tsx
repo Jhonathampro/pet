@@ -105,13 +105,13 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             </div>
 
             <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: '#fff', lineHeight: 1.25, marginBottom: '14px' }}>
-              Acesso ao Sistema (MVP)
+              Acesso à Plataforma
             </h2>
             <p style={{ color: '#d1c4b5', fontSize: '0.94rem', lineHeight: 1.6, marginBottom: '28px' }}>
-              Utilize as credenciais mockadas para simular o acesso como Usuário adotante ou como a ONG parceira SalvaPet.
+              Selecione o tipo de perfil ou utilize o formulário ao lado.
             </p>
 
-            {/* Credential Quick Cards */}
+            {/* Quick Profiles - No credentials printed */}
             <div style={{
               backgroundColor: 'rgba(255, 255, 255, 0.06)',
               borderRadius: 'var(--r-md)',
@@ -119,12 +119,12 @@ export const LoginPage: React.FC<LoginPageProps> = ({
               border: '1px solid rgba(255, 255, 255, 0.12)',
               marginBottom: '16px'
             }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f59e0b', fontSize: '0.82rem', fontWeight: 700, marginBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#f59e0b', fontSize: '0.82rem', fontWeight: 700, marginBottom: '14px' }}>
                 <Sparkles size={14} />
-                <span>Credenciais do MVP (Clique para entrar direto):</span>
+                <span>Acesso rápido:</span>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <button
                   type="button"
                   onClick={() => handleQuickLogin('user')}
@@ -132,13 +132,16 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   style={{
                     width: '100%',
                     justifyContent: 'space-between',
-                    padding: '9px 12px',
-                    fontSize: '0.82rem'
+                    padding: '12px 14px',
+                    fontSize: '0.86rem'
                   }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <User size={14} color="#f59e0b" />
-                    <span><strong>Usuário:</strong> lucas@gmail.com</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <User size={16} color="#f59e0b" />
+                    <span style={{ textAlign: 'left' }}>
+                      <strong>Perfil de Usuário</strong>
+                      <div style={{ fontSize: '0.74rem', opacity: 0.8 }}>Lucas • Adotante</div>
+                    </span>
                   </span>
                   <span className="badge badge-earth" style={{ fontSize: '0.7rem' }}>Entrar</span>
                 </button>
@@ -150,26 +153,25 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                   style={{
                     width: '100%',
                     justifyContent: 'space-between',
-                    padding: '9px 12px',
-                    fontSize: '0.82rem'
+                    padding: '12px 14px',
+                    fontSize: '0.86rem'
                   }}
                 >
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Building2 size={14} color="#38bdf8" />
-                    <span><strong>ONG:</strong> SalvaPet@gmail.com</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Building2 size={16} color="#38bdf8" />
+                    <span style={{ textAlign: 'left' }}>
+                      <strong>Perfil de ONG</strong>
+                      <div style={{ fontSize: '0.74rem', opacity: 0.8 }}>SalvaPet • Organização</div>
+                    </span>
                   </span>
                   <span className="badge badge-earth" style={{ fontSize: '0.7rem' }}>Entrar</span>
                 </button>
-              </div>
-
-              <div style={{ fontSize: '0.75rem', color: '#a89d91', marginTop: '10px', textAlign: 'center' }}>
-                Senha padrão: <strong>chave123</strong>
               </div>
             </div>
           </div>
 
           <div style={{ fontSize: '0.78rem', color: '#78716c', position: 'relative', zIndex: 2 }}>
-            PetHub MVP • Demonstração funcional com dados mockados
+            PetHub • Saúde, proteção e adoção animal
           </div>
         </div>
 
@@ -179,7 +181,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
             Entrar na Plataforma
           </h3>
           <p style={{ fontSize: '0.88rem', color: 'var(--c-gray-600)', marginBottom: '24px' }}>
-            Digite seu e-mail e senha cadastrados para continuar.
+            Digite seu e-mail e senha para continuar.
           </p>
 
           {errorMessage && (
@@ -225,7 +227,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 type="email"
                 required
                 className="form-input"
-                placeholder="lucas@gmail.com ou SalvaPet@gmail.com"
+                placeholder="seu.email@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
@@ -237,7 +239,7 @@ export const LoginPage: React.FC<LoginPageProps> = ({
                 type="password"
                 required
                 className="form-input"
-                placeholder="chave123"
+                placeholder="Sua senha"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />

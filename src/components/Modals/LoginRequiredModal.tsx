@@ -53,7 +53,7 @@ export const LoginRequiredModal: React.FC<LoginRequiredModalProps> = ({
 
         <div className="modal-body" style={{ padding: '28px' }}>
           <p style={{ fontSize: '1rem', color: 'var(--c-black-800)', lineHeight: 1.6, marginBottom: '24px' }}>
-            Para demonstrar interesse em adotar um animal, você precisa criar uma conta ou entrar em uma conta existente.
+            Para registrar interesse em adotar um animal, você precisa criar uma conta ou entrar em uma conta existente.
           </p>
 
           {showSignupNotice && (
@@ -70,7 +70,7 @@ export const LoginRequiredModal: React.FC<LoginRequiredModalProps> = ({
               gap: '10px'
             }}>
               <AlertCircle size={18} color="#2563eb" />
-              <span>Cadastro de novas contas estará disponível em uma próxima versão. Utilize a conta de teste <strong>lucas@gmail.com</strong>.</span>
+              <span>Cadastro de novas contas estará disponível em uma próxima versão.</span>
             </div>
           )}
 
@@ -78,13 +78,12 @@ export const LoginRequiredModal: React.FC<LoginRequiredModalProps> = ({
             backgroundColor: 'var(--c-sand-100)',
             padding: '14px 18px',
             borderRadius: 'var(--r-md)',
-            fontSize: '0.84rem',
+            fontSize: '0.86rem',
             color: 'var(--c-gray-700)',
             marginBottom: '28px',
             lineHeight: 1.5
           }}>
-            <strong>Credenciais para teste no MVP:</strong><br />
-            E-mail: <code>lucas@gmail.com</code> • Senha: <code>chave123</code>
+            Acesse sua conta de usuário para registrar seu interesse formal e permitir que a ONG entre em contato com você para as próximas etapas da adoção.
           </div>
 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>

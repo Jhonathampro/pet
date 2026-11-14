@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { DataStore } from '../data/mockData';
-import type { Pet, ONG, AdoptionInterest } from '../types';
+import type { Pet, ONG, AdoptionInterest, VaccinationRequest } from '../types';
 import { 
   Building2, 
   PawPrint, 
@@ -13,11 +13,16 @@ import {
   Bone, 
   CheckCircle2, 
   Save, 
-  Users
+  Users,
+  Syringe,
+  Calendar,
+  Clock,
+  Phone,
+  Mail
 } from '../components/Icons';
 
 interface NGODashboardProps {
-  initialTab?: 'animals' | 'interests' | 'donations' | 'food' | 'settings';
+  initialTab?: 'animals' | 'interests' | 'vaccinations' | 'donations' | 'food' | 'settings';
   onOpenAddPetModal: () => void;
   onOpenEditPetModal: (pet: Pet) => void;
   onSelectPet: (pet: Pet) => void;
@@ -32,7 +37,7 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
   onRefresh
 }) => {
   const { user } = useAuth();
-  const [activeTab, setActiveTab] = useState<'animals' | 'interests' | 'donations' | 'food' | 'settings'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'animals' | 'interests' | 'vaccinations' | 'donations' | 'food' | 'settings'>(initialTab);
 
   const ongs = DataStore.getONGs();
   const currentONG = ongs.find(o => o.id === (user?.ongId || 'ong-salvapet')) || ongs[0];
@@ -50,10 +55,14 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
   const allFood = DataStore.getFoodItems();
   const ongFood = allFood.filter(f => f.role === 'ong');
 
+  const allVaccinations = DataStore.getVaccinationRequests();
+  const ongVaccinations = allVaccinations.filter(v => v.ongId === currentONG.id);
+
   // Editable settings state
   const [acceptsFood, setAcceptsFood] = useState(currentONG.acceptsFood);
   const [providesFood, setProvidesFood] = useState(currentONG.providesFood);
   const [acceptsDonations, setAcceptsDonations] = useState(currentONG.acceptsDonations);
+  const [offersVaccination, setOffersVaccination] = useState(currentONG.offersVaccination ?? true);
   const [pixKey, setPixKey] = useState(currentONG.pixKey);
   const [bankAgency, setBankAgency] = useState(currentONG.bank.agency);
   const [bankAccount, setBankAccount] = useState(currentONG.bank.account);
@@ -79,6 +88,11 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
     onRefresh();
   };
 
+  const handleUpdateVaccinationStatus = (id: string, newStatus: VaccinationRequest['status']) => {
+    DataStore.updateVaccinationRequestStatus(id, newStatus);
+    onRefresh();
+  };
+
   const handleSaveSettings = (e: React.FormEvent) => {
     e.preventDefault();
     const updated: ONG = {
@@ -86,6 +100,7 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
       acceptsFood,
       providesFood,
       acceptsDonations,
+      offersVaccination,
       pixKey,
       bank: {
         ...currentONG.bank,
@@ -176,6 +191,12 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
             Interesses recebidos ({ongInterests.length})
           </button>
           <button
+            className={`tab-btn ${activeTab === 'vaccinations' ? 'active' : ''}`}
+            onClick={() => setActiveTab('vaccinations')}
+          >
+            💉 Vacinação ({ongVaccinations.length})
+          </button>
+          <button
             className={`tab-btn ${activeTab === 'donations' ? 'active' : ''}`}
             onClick={() => setActiveTab('donations')}
           >
@@ -248,6 +269,9 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
                             <img
                               src={pet.image}
                               alt={pet.name}
+                              onError={(e) => {
+                                e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80';
+                              }}
                               style={{ width: '48px', height: '48px', borderRadius: '10px', objectFit: 'cover' }}
                             />
                             <div>
@@ -422,6 +446,170 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
                       >
                         Aprovar Adoção
                       </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ===================== TAB: VACINAÇÕES ===================== */}
+        {activeTab === 'vaccinations' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+              <div>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--c-black-900)', marginBottom: '4px' }}>
+                  Agendamentos de Vacinação Canina
+                </h3>
+                <p style={{ fontSize: '0.88rem', color: 'var(--c-gray-600)' }}>
+                  Solicitações de tutores para vacinação realizada na sede da {currentONG.name}.
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <span className={`badge ${offersVaccination ? 'badge-confirmed' : 'badge-alert'}`} style={{ fontSize: '0.82rem' }}>
+                  {offersVaccination ? '✓ Serviço Ativo no Perfil' : '✕ Serviço Desativado no Perfil'}
+                </span>
+              </div>
+            </div>
+
+            {!offersVaccination && (
+              <div style={{
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: 'var(--r-md)',
+                padding: '14px 18px',
+                color: '#991b1b',
+                fontSize: '0.88rem',
+                marginBottom: '24px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '10px'
+              }}>
+                <Syringe size={20} color="#dc2626" />
+                <span>
+                  O serviço de vacinação está marcado como <strong>desativado</strong> nas suas configurações. Tutores não conseguirão agendar novas vacinas até que você reative a opção em <strong>Configurações</strong>.
+                </span>
+              </div>
+            )}
+
+            {ongVaccinations.length === 0 ? (
+              <div style={{
+                backgroundColor: 'var(--c-white)',
+                borderRadius: 'var(--r-xl)',
+                padding: '48px',
+                textAlign: 'center',
+                border: '1.5px dashed var(--c-sand-300)'
+              }}>
+                <div style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--c-sand-100)',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--c-brown-800)',
+                  marginBottom: '16px'
+                }}>
+                  <Syringe size={28} />
+                </div>
+                <h4 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--c-black-900)', marginBottom: '6px' }}>
+                  Nenhum agendamento de vacina registrado
+                </h4>
+                <p style={{ color: 'var(--c-gray-600)', fontSize: '0.88rem' }}>
+                  Quando tutores agendarem vacinas para seus cães através do perfil da sua ONG, eles aparecerão aqui.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {ongVaccinations.map((vac) => (
+                  <div
+                    key={vac.id}
+                    style={{
+                      backgroundColor: 'var(--c-white)',
+                      borderRadius: 'var(--r-lg)',
+                      padding: '24px',
+                      border: '1.5px solid var(--c-sand-200)',
+                      display: 'flex',
+                      flexWrap: 'wrap',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: '20px'
+                    }}
+                  >
+                    <div style={{ display: 'flex', gap: '18px', alignItems: 'flex-start', flex: 1, minWidth: '280px' }}>
+                      <div style={{
+                        width: '48px',
+                        height: '48px',
+                        borderRadius: '12px',
+                        backgroundColor: 'var(--c-brown-100)',
+                        color: 'var(--c-brown-900)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexShrink: 0
+                      }}>
+                        <Syringe size={22} />
+                      </div>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                          <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--c-brown-800)', backgroundColor: 'var(--c-sand-100)', padding: '2px 8px', borderRadius: '4px' }}>
+                            {vac.protocol}
+                          </span>
+                          <h4 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--c-black-900)', margin: 0 }}>
+                            {vac.dogName} ({vac.breed} • Porte {vac.size})
+                          </h4>
+                          <span className={`badge ${
+                            vac.status === 'Concluído' ? 'badge-confirmed' :
+                            vac.status === 'Agendado' ? 'badge-active' :
+                            vac.status === 'Cancelado' ? 'badge-alert' : 'badge-earth'
+                          }`}>
+                            {vac.status}
+                          </span>
+                        </div>
+
+                        <div style={{ fontSize: '0.88rem', color: 'var(--c-black-800)', marginTop: '6px' }}>
+                          Vacina: <strong style={{ color: 'var(--c-brown-900)' }}>{vac.vaccineType}</strong> • Data sugerida: <strong>{vac.preferredDate} ({vac.preferredShift})</strong>
+                        </div>
+
+                        <div style={{ fontSize: '0.84rem', color: 'var(--c-gray-700)', marginTop: '4px', display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
+                          <span>Tutor: <strong>{vac.tutorName}</strong></span>
+                          <span>WhatsApp: <strong>{vac.tutorPhone}</strong></span>
+                          <span>E-mail: <strong>{vac.tutorEmail}</strong></span>
+                        </div>
+
+                        {vac.notes && (
+                          <div style={{
+                            backgroundColor: 'var(--c-sand-50)',
+                            padding: '8px 12px',
+                            borderRadius: 'var(--r-sm)',
+                            fontSize: '0.84rem',
+                            color: 'var(--c-gray-700)',
+                            marginTop: '8px',
+                            border: '1px solid var(--c-sand-200)'
+                          }}>
+                            Observações: "{vac.notes}"
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', minWidth: '180px' }}>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--c-gray-600)' }}>Alterar Status:</span>
+                      <select
+                        className="form-select"
+                        value={vac.status}
+                        onChange={(e) => handleUpdateVaccinationStatus(vac.id, e.target.value as any)}
+                        style={{ fontSize: '0.82rem', padding: '6px 10px', fontWeight: 700 }}
+                      >
+                        <option value="Solicitado">Solicitado</option>
+                        <option value="Agendado">Agendado</option>
+                        <option value="Concluído">Concluído</option>
+                        <option value="Cancelado">Cancelado</option>
+                      </select>
                     </div>
                   </div>
                 ))}
@@ -614,6 +802,19 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
                     type="checkbox"
                     checked={acceptsDonations}
                     onChange={(e) => setAcceptsDonations(e.target.checked)}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                  />
+                </label>
+
+                <label style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer' }}>
+                  <div>
+                    <strong style={{ color: 'var(--c-black-900)' }}>Oferece vacinação de cães: {offersVaccination ? 'SIM' : 'NÃO'}</strong>
+                    <div style={{ fontSize: '0.8rem', color: 'var(--c-gray-600)' }}>Disponibiliza vacinação para cachorros na própria sede da ONG</div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={offersVaccination}
+                    onChange={(e) => setOffersVaccination(e.target.checked)}
                     style={{ width: '20px', height: '20px', cursor: 'pointer' }}
                   />
                 </label>

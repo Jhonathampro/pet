@@ -244,7 +244,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               color: '#d97706',
               fontWeight: 600
             }}>
-              <span>• Protótipo funcional com dados fictícios</span>
+              <span>• Plataforma de proteção animal</span>
             </div>
           </div>
         </div>

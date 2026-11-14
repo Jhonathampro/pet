@@ -73,6 +73,7 @@ export interface ONG {
   availablePetsCount: number;
   rescuedTotal: number;
   verified: boolean;
+  offersVaccination: boolean;
 }
 
 export type AbandonmentStatus = 'Ativo' | 'Confirmado por múltiplos registros' | 'Expirado';
@@ -145,4 +146,26 @@ export interface DonationRecord {
   method: 'PIX' | 'Transferência Bancária';
   status: 'Confirmado' | 'Pendente';
 }
+
+export type VaccinationStatus = 'Solicitado' | 'Agendado' | 'Concluído' | 'Cancelado';
+
+export interface VaccinationRequest {
+  id: string;
+  dogName: string;
+  breed: string;
+  size: PetSize;
+  tutorName: string;
+  tutorPhone: string;
+  tutorEmail: string;
+  preferredDate: string;
+  preferredShift: 'Manhã' | 'Tarde';
+  vaccineType: string;
+  notes?: string;
+  ongId: string;
+  ongName: string;
+  status: VaccinationStatus;
+  protocol: string;
+  createdAt: string;
+}
+
 

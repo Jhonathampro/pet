@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { Pet, ONG } from '../types';
+import { useAuth } from '../context/AuthContext';
 import { 
   PawPrint, 
   Heart, 
@@ -12,7 +13,8 @@ import {
   ShieldCheck, 
   Check, 
   Sparkles,
-  Info
+  Info,
+  Plus
 } from '../components/Icons';
 
 interface HomeProps {
@@ -20,14 +22,17 @@ interface HomeProps {
   ongs: ONG[];
   onNavigate: (tab: string, meta?: any) => void;
   onSelectPet: (pet: Pet) => void;
+  onOpenAddPetModal?: () => void;
 }
 
 export const Home: React.FC<HomeProps> = ({
   pets,
   ongs,
   onNavigate,
-  onSelectPet
+  onSelectPet,
+  onOpenAddPetModal
 }) => {
+  const { isONG } = useAuth();
   const [selectedSpecies, setSelectedSpecies] = useState<'Todos' | 'Cachorro' | 'Gato'>('Todos');
 
   const filteredFeaturedPets = pets
@@ -96,7 +101,7 @@ export const Home: React.FC<HomeProps> = ({
                 Conectando pessoas, ONGs e animais que precisam de ajuda.
               </h1>
 
-              {/* Subtitle Requerido pelo Prompt */}
+              {/* Subtitle */}
               <p style={{
                 fontSize: 'clamp(1rem, 1.8vw, 1.2rem)',
                 color: '#d1c4b5',
@@ -104,54 +109,106 @@ export const Home: React.FC<HomeProps> = ({
                 marginBottom: '36px',
                 maxWidth: '540px'
               }}>
-                Encontre um novo companheiro, ajude um animal em situação de abandono ou apoie uma organização de proteção animal.
+                {isONG
+                  ? 'Gerencie seus animais para adoção, acompanhe ocorrências no mapa de abandono e receba apoio para a sua organização.'
+                  : 'Encontre um novo companheiro, ajude um animal em situação de abandono ou apoie uma organização de proteção animal.'}
               </p>
 
-              {/* Main CTAs Requested by Prompt */}
+              {/* Main CTAs */}
               <div style={{
                 display: 'flex',
                 flexWrap: 'wrap',
                 gap: '14px',
                 marginBottom: '36px'
               }}>
-                <button
-                  onClick={() => onNavigate('adotar')}
-                  className="btn btn-lg btn-earth"
-                  style={{ gap: '10px' }}
-                >
-                  <PawPrint size={20} />
-                  <span>Adotar um pet</span>
-                </button>
+                {isONG ? (
+                  <>
+                    <button
+                      onClick={() => onNavigate('dashboard-ong')}
+                      className="btn btn-lg btn-earth"
+                      style={{ gap: '10px' }}
+                    >
+                      <PawPrint size={20} />
+                      <span>Meus Animais</span>
+                    </button>
 
-                <button
-                  onClick={() => onNavigate('denunciar')}
-                  className="btn btn-lg"
-                  style={{
-                    backgroundColor: '#fee2e2',
-                    color: '#991b1b',
-                    border: '1px solid #fecaca',
-                    fontWeight: 700
-                  }}
-                >
-                  <AlertTriangle size={18} color="#b91c1c" />
-                  <span>Denunciar abandono</span>
-                </button>
+                    <button
+                      onClick={() => onNavigate('mapa')}
+                      className="btn btn-lg btn-outline-white"
+                      style={{ gap: '10px' }}
+                    >
+                      <MapPin size={18} />
+                      <span>Mapa de Abandono</span>
+                    </button>
 
-                <button
-                  onClick={() => onNavigate('ongs')}
-                  className="btn btn-lg btn-outline-white"
-                >
-                  <Building2 size={18} />
-                  <span>Encontrar uma ONG</span>
-                </button>
+                    <button
+                      onClick={() => onNavigate('denunciar')}
+                      className="btn btn-lg"
+                      style={{
+                        backgroundColor: '#fee2e2',
+                        color: '#991b1b',
+                        border: '1px solid #fecaca',
+                        fontWeight: 700
+                      }}
+                    >
+                      <AlertTriangle size={18} color="#b91c1c" />
+                      <span>Denunciar abandono</span>
+                    </button>
 
-                <button
-                  onClick={() => onNavigate('doacoes')}
-                  className="btn btn-lg btn-outline-white"
-                >
-                  <Heart size={18} color="#f59e0b" />
-                  <span>Quero ajudar</span>
-                </button>
+                    <button
+                      onClick={() => {
+                        if (onOpenAddPetModal) onOpenAddPetModal();
+                        else onNavigate('ong-novo-animal');
+                      }}
+                      className="btn btn-lg btn-outline-white"
+                      style={{ gap: '8px' }}
+                    >
+                      <Plus size={18} />
+                      <span>Cadastrar Pet</span>
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={() => onNavigate('adotar')}
+                      className="btn btn-lg btn-earth"
+                      style={{ gap: '10px' }}
+                    >
+                      <PawPrint size={20} />
+                      <span>Adotar um pet</span>
+                    </button>
+
+                    <button
+                      onClick={() => onNavigate('denunciar')}
+                      className="btn btn-lg"
+                      style={{
+                        backgroundColor: '#fee2e2',
+                        color: '#991b1b',
+                        border: '1px solid #fecaca',
+                        fontWeight: 700
+                      }}
+                    >
+                      <AlertTriangle size={18} color="#b91c1c" />
+                      <span>Denunciar abandono</span>
+                    </button>
+
+                    <button
+                      onClick={() => onNavigate('ongs')}
+                      className="btn btn-lg btn-outline-white"
+                    >
+                      <Building2 size={18} />
+                      <span>Encontrar uma ONG</span>
+                    </button>
+
+                    <button
+                      onClick={() => onNavigate('doacoes')}
+                      className="btn btn-lg btn-outline-white"
+                    >
+                      <Heart size={18} color="#f59e0b" />
+                      <span>Quero ajudar</span>
+                    </button>
+                  </>
+                )}
               </div>
 
               {/* Notice that this is an honest MVP */}
@@ -382,7 +439,7 @@ export const Home: React.FC<HomeProps> = ({
                 Animais disponíveis para adoção
               </h2>
               <p style={{ color: 'var(--c-gray-600)', fontSize: '1rem', marginTop: '4px' }}>
-                Conheça os cães e gatos sob os cuidados da ONG SalvaPet esperando por um lar responsável.
+                Conheça os cães e gatos sob os cuidados das ONGs parceiras esperando por um lar responsável.
               </p>
             </div>
 
@@ -420,7 +477,13 @@ export const Home: React.FC<HomeProps> = ({
             {filteredFeaturedPets.map((pet) => (
               <div key={pet.id} className="card pet-card">
                 <div className="pet-card-image-wrap">
-                  <img src={pet.image} alt={pet.name} />
+                  <img
+                    src={pet.image}
+                    alt={pet.name}
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80';
+                    }}
+                  />
                   <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px' }}>
                     <span className="badge badge-white">
                       {pet.species}
@@ -477,13 +540,23 @@ export const Home: React.FC<HomeProps> = ({
           </div>
 
           <div style={{ textAlign: 'center' }}>
-            <button
-              onClick={() => onNavigate('adotar')}
-              className="btn btn-lg btn-primary"
-            >
-              <PawPrint size={18} />
-              <span>Ver todos os animais para adoção</span>
-            </button>
+            {isONG ? (
+              <button
+                onClick={() => onNavigate('dashboard-ong')}
+                className="btn btn-lg btn-primary"
+              >
+                <PawPrint size={18} />
+                <span>Gerenciar meus animais cadastrados</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => onNavigate('adotar')}
+                className="btn btn-lg btn-primary"
+              >
+                <PawPrint size={18} />
+                <span>Ver todos os animais para adoção</span>
+              </button>
+            )}
           </div>
         </div>
       </section>
@@ -556,7 +629,7 @@ export const Home: React.FC<HomeProps> = ({
               border: '2px solid rgba(255, 255, 255, 0.1)'
             }}>
               <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#fff', marginBottom: '14px' }}>
-                Exemplo de Registro no Sistema:
+                Registro no sistema:
               </div>
               <div style={{
                 backgroundColor: 'rgba(255,255,255,0.05)',

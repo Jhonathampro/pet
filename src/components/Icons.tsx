@@ -354,3 +354,46 @@ export const SlidersHorizontal: React.FC<IconProps> = ({ size = 20, className = 
     <line x1="16" y1="17" x2="16" y2="23" />
   </svg>
 );
+
+export const Syringe: React.FC<IconProps> = ({ size = 20, className = '', strokeWidth = 2, ...props }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" className={className} {...props}>
+    <path d="m18 2 4 4" />
+    <path d="m17 7 3-3" />
+    <path d="M19 9 8.7 19.3c-1 1-2.5 1-3.4 0l-.6-.6c-1-1-1-2.5 0-3.4L15 5" />
+    <path d="m9 11 4 4" />
+    <path d="m5 19-3 3" />
+    <path d="m14 4 6 6" />
+  </svg>
+);
+
+export const ScoobyDogIcon: React.FC<{ size?: number; className?: string }> = ({ size = 28, className = '' }) => (
+  <svg width={size} height={size} viewBox="0 0 48 48" fill="none" className={className}>
+    {/* Dog Head Base */}
+    <ellipse cx="24" cy="27" rx="14" ry="13" fill="#8B5A2B" />
+    {/* Dog Ears (Floppy Brown) */}
+    <path d="M11 18 C7 14, 5 22, 7 30 C8 34, 12 33, 13 28 Z" fill="#603813" />
+    <path d="M37 18 C41 14, 43 22, 41 30 C40 34, 36 33, 35 28 Z" fill="#603813" />
+    {/* Face Muzzle Area (Lighter warm brown) */}
+    <ellipse cx="24" cy="30" rx="8" ry="7" fill="#C68B59" />
+    {/* Dark Cute Nose */}
+    <path d="M21.5 27 C22.5 26, 25.5 26, 26.5 27 C27 28, 25.5 30, 24 30.5 C22.5 30, 21 28, 21.5 27 Z" fill="#29180B" />
+    {/* Smiling Mouth */}
+    <path d="M21 32 C22.5 34, 25.5 34, 27 32" stroke="#29180B" strokeWidth="2" strokeLinecap="round" />
+    {/* Cute Tongue */}
+    <path d="M23 33.5 C23 35.5, 25 35.5, 25 33.5" fill="#EF4444" />
+    {/* Left Eye */}
+    <circle cx="19" cy="23" r="2.8" fill="#1C1917" />
+    <circle cx="18.2" cy="22.2" r="1" fill="#FFFFFF" />
+    {/* Right Eye */}
+    <circle cx="29" cy="23" r="2.8" fill="#1C1917" />
+    <circle cx="28.2" cy="22.2" r="1" fill="#FFFFFF" />
+    {/* Eyebrows */}
+    <path d="M17 18.5 Q19 17.5 21 18.5" stroke="#4A2511" strokeWidth="1.5" strokeLinecap="round" />
+    <path d="M27 18.5 Q29 17.5 31 18.5" stroke="#4A2511" strokeWidth="1.5" strokeLinecap="round" />
+    {/* Cute Collar */}
+    <path d="M15 38 Q24 43 33 38" stroke="#0284C7" strokeWidth="3.5" strokeLinecap="round" />
+    {/* Golden Tag Medal */}
+    <circle cx="24" cy="42" r="2.5" fill="#F59E0B" stroke="#B45309" strokeWidth="0.8" />
+  </svg>
+);
+

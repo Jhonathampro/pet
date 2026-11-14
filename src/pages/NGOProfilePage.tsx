@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ONG, Pet } from '../types';
+import type { ONG, Pet } from '../types';
 import { 
   Building2, 
   MapPin, 
@@ -14,7 +14,8 @@ import {
   Copy, 
   ArrowRight, 
   PawPrint,
-  ArrowLeft
+  ArrowLeft,
+  Syringe
 } from '../components/Icons';
 
 interface NGOProfilePageProps {
@@ -23,6 +24,7 @@ interface NGOProfilePageProps {
   onBack: () => void;
   onSelectPet: (pet: Pet) => void;
   onOpenFinancialDonate: (ong: ONG) => void;
+  onOpenVaccinationModal?: (ong: ONG) => void;
 }
 
 export const NGOProfilePage: React.FC<NGOProfilePageProps> = ({
@@ -30,7 +32,8 @@ export const NGOProfilePage: React.FC<NGOProfilePageProps> = ({
   pets,
   onBack,
   onSelectPet,
-  onOpenFinancialDonate
+  onOpenFinancialDonate,
+  onOpenVaccinationModal
 }) => {
   const [copied, setCopied] = useState(false);
 
@@ -211,8 +214,65 @@ export const NGOProfilePage: React.FC<NGOProfilePageProps> = ({
                 {ong.acceptsDonations ? '✓ Aceita PIX e Transferência Bancária direta' : '✕ Não recebe recursos financeiros'}
               </div>
             </div>
+
+            <div style={{
+              backgroundColor: 'var(--c-sand-50)',
+              padding: '18px 20px',
+              borderRadius: 'var(--r-md)',
+              border: '1px solid var(--c-sand-200)'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+                <Syringe size={18} color="var(--c-brown-700)" />
+                <span style={{ fontWeight: 700, color: 'var(--c-black-900)', fontSize: '0.92rem' }}>
+                  Vacinação de Cães
+                </span>
+              </div>
+              <div style={{ fontSize: '0.86rem', color: ong.offersVaccination ? '#15803d' : 'var(--c-gray-600)', fontWeight: 600 }}>
+                {ong.offersVaccination ? '✓ Oferece vacinação na própria sede' : '✕ Não oferece vacinação no momento'}
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Canine Vaccination Section If Offered by this ONG */}
+        {ong.offersVaccination && (
+          <div style={{
+            backgroundColor: 'var(--c-white)',
+            borderRadius: 'var(--r-xl)',
+            padding: '28px 32px',
+            border: '2px solid var(--c-brown-500)',
+            boxShadow: 'var(--shadow-sm)',
+            marginBottom: '36px',
+            display: 'flex',
+            flexWrap: 'wrap',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            gap: '20px'
+          }}>
+            <div style={{ maxWidth: '640px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+                <span className="badge badge-earth">
+                  Serviço Veterinário
+                </span>
+                <h3 style={{ fontSize: '1.3rem', fontWeight: 800, color: 'var(--c-black-900)', margin: 0 }}>
+                  Vacinação de Cães Disponível
+                </h3>
+              </div>
+              <p style={{ fontSize: '0.92rem', color: 'var(--c-gray-700)', lineHeight: 1.6, margin: 0 }}>
+                A <strong>{ong.name}</strong> realiza vacinação para cães diretamente em sua sede (V8, V10, Antirrábica, Gripe Canina). Solicite um agendamento rápido para seu cão através da plataforma!
+              </p>
+            </div>
+
+            <button
+              onClick={() => onOpenVaccinationModal && onOpenVaccinationModal(ong)}
+              className="btn btn-lg btn-earth"
+              style={{ gap: '8px', whiteSpace: 'nowrap' }}
+            >
+              <Syringe size={18} />
+              <span>Agendar Vacinação para Cão</span>
+            </button>
+          </div>
+        )}
 
         {/* Financial Donation Card If Accepted */}
         {ong.acceptsDonations && (
@@ -314,7 +374,13 @@ export const NGOProfilePage: React.FC<NGOProfilePageProps> = ({
               {availablePets.map((pet) => (
                 <div key={pet.id} className="card pet-card">
                   <div className="pet-card-image-wrap">
-                    <img src={pet.image} alt={pet.name} />
+                    <img
+                      src={pet.image}
+                      alt={pet.name}
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80';
+                      }}
+                    />
                     <div style={{ position: 'absolute', top: '12px', left: '12px' }}>
                       <span className="badge badge-white">{pet.species}</span>
                     </div>

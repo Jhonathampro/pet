@@ -26,14 +26,21 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenAd
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [demoMenuOpen, setDemoMenuOpen] = useState(false);
 
-  const navLinks = [
-    { id: 'home', label: 'Início', path: '/' },
-    { id: 'adotar', label: 'Adotar', path: '/adotar' },
-    { id: 'ongs', label: 'ONGs', path: '/ongs' },
-    { id: 'mapa', label: 'Mapa de abandonos', path: '/abandono' },
-    { id: 'banco-racao', label: 'Banco de ração', path: '/racao' },
-    { id: 'doacoes', label: 'Doações', path: '/doacoes' },
-  ];
+  // Nav links variam de acordo com o papel do usuário
+  const navLinks = isONG
+    ? [
+        { id: 'home', label: 'Início', path: '/' },
+        { id: 'mapa', label: 'Mapa de abandonos', path: '/abandono' },
+        { id: 'denunciar', label: 'Registrar abandono', path: '/denunciar' },
+      ]
+    : [
+        { id: 'home', label: 'Início', path: '/' },
+        { id: 'adotar', label: 'Adotar', path: '/adotar' },
+        { id: 'ongs', label: 'ONGs', path: '/ongs' },
+        { id: 'mapa', label: 'Mapa de abandonos', path: '/abandono' },
+        { id: 'banco-racao', label: 'Banco de ração', path: '/racao' },
+        { id: 'doacoes', label: 'Doações', path: '/doacoes' },
+      ];
 
   const handleNavClick = (id: string) => {
     onNavigate(id);
@@ -62,7 +69,7 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenAd
             backgroundColor: '#10b981',
             boxShadow: '0 0 8px #10b981'
           }} />
-          <span><strong>PetHub MVP</strong> • Demonstração funcional com dados mockados</span>
+          <span><strong>PetHub</strong> • Plataforma de saúde e proteção animal</span>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -87,8 +94,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentTab, onNavigate, onOpenAd
               <Sparkles size={12} color="#f59e0b" />
               <span>
                 {role === 'guest' && 'Visitante (Sem login)'}
-                {role === 'user' && 'Usuário: Lucas (lucas@gmail.com)'}
-                {role === 'ong' && 'ONG: SalvaPet (SalvaPet@gmail.com)'}
+                {role === 'user' && 'Usuário: Lucas'}
+                {role === 'ong' && 'ONG: SalvaPet'}
               </span>
               <ChevronDown size={12} />
             </button>

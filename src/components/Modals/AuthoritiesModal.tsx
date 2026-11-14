@@ -65,7 +65,7 @@ export const AuthoritiesModal: React.FC<AuthoritiesModalProps> = ({
           }}>
             <AlertTriangle size={22} color="#b45309" style={{ flexShrink: 0, marginTop: '2px' }} />
             <div style={{ fontSize: '0.88rem', color: '#78350f', lineHeight: 1.5 }}>
-              <strong>Atenção: Funcionalidade de Simulação (Protótipo)</strong>
+              <strong>Atenção: Canais não oficiais</strong>
               <p style={{ marginTop: '4px' }}>
                 O <strong>PetHub</strong> é uma plataforma comunitária de conscientização e proteção. Denúncias cadastradas no sistema não geram protocolo policial automático. Para flagrantes de maus-tratos ou abandono em andamento, utilize os canais oficiais do Estado.
               </p>

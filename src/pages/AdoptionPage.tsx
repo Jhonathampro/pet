@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Pet, ONG, PetSpecies, PetSex, PetAgeCategory } from '../types';
+import type { Pet, ONG, PetSpecies, PetSex, PetAgeCategory } from '../types';
 import { 
   PawPrint, 
   Search, 
@@ -342,7 +342,13 @@ export const AdoptionPage: React.FC<AdoptionPageProps> = ({
             {filteredPets.map((pet) => (
               <div key={pet.id} className="card pet-card">
                 <div className="pet-card-image-wrap">
-                  <img src={pet.image} alt={pet.name} />
+                  <img
+                    src={pet.image}
+                    alt={pet.name}
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1543466835-00a7907e9de1?auto=format&fit=crop&w=800&q=80';
+                    }}
+                  />
                   
                   {/* Top species badge */}
                   <div style={{ position: 'absolute', top: '12px', left: '12px', display: 'flex', gap: '6px' }}>

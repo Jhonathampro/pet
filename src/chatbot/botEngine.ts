@@ -29,13 +29,12 @@ export interface BotContext {
 }
 
 export const DEFAULT_SUGGESTIONS = [
-  'Quero adotar um cachorro',
-  'Gatos filhotes',
-  'Como funciona a adoção?',
-  'Ver ONGs',
-  'Denunciar abandono',
-  'Banco de ração',
-  'Como doar?',
+  'Como adotar um cachorro?',
+  'Como funciona a vacinação?',
+  'Encontrar uma ONG',
+  'Como denunciar abandono?',
+  'Como doar ração?',
+  'Falar com uma ONG',
 ];
 
 /** minúsculas, sem acentos e sem pontuação */
@@ -156,13 +155,17 @@ function ongInfo(ong: ONG, pets: Pet[]): BotReply {
 
 export function getWelcome(ctx: BotContext): BotReply {
   const name = ctx.user?.name?.split(' ')[0];
-  const available = ctx.pets.filter(p => p.status === 'Disponível').length;
+  const availableDogs = ctx.pets.filter(p => p.status === 'Disponível' && p.species === 'Cachorro').length;
+  const ongsWithVac = ctx.ongs.filter(o => o.offersVaccination).length;
+
   return {
     text:
-      `Oi${name ? `, ${name}` : ''}! 👋 Eu sou a **Scooby**, assistente virtual do Hub Pet.\n` +
-      `Temos **${available} pets** esperando por um lar e **${ctx.ongs.length} ONGs** parceiras. ` +
-      `Posso te ajudar a encontrar um pet, falar sobre ONGs, doações, banco de ração ou denúncias de abandono.`,
-    suggestions: DEFAULT_SUGGESTIONS.slice(0, 5),
+      `Au au! Olá${name ? `, ${name}` : ''}! 🐶🐾\n` +
+      `Eu sou o **Scooby**, o cãozinho mascote oficial do PetHub!\n\n` +
+      `Estou aqui para te ajudar com tudo sobre nossos aumigos: temos **${availableDogs} cãezinhos** para adoção, ` +
+      `**${ctx.ongs.length} ONGs cadastradas** e **${ongsWithVac} ONGs oferecendo vacinação canina**!\n\n` +
+      `O que você gostaria de saber hoje?`,
+    suggestions: DEFAULT_SUGGESTIONS,
   };
 }
 
@@ -170,48 +173,162 @@ export function getBotReply(input: string, ctx: BotContext): BotReply {
   const text = normalize(input);
   const { pets, ongs, reports, foodItems } = ctx;
 
-  if (!text) return { text: 'Pode escrever sua dúvida que eu te ajudo! 😊', suggestions: DEFAULT_SUGGESTIONS };
+  if (!text) return { text: 'Au au! Pode escrever sua dúvida que eu te ajudo na hora! 🐶', suggestions: DEFAULT_SUGGESTIONS };
 
   /* --- Emergência / maus-tratos (prioridade máxima) --- */
   if (has(text, ['maus tratos', 'maltrat', 'agredi', 'espancad', 'envenen', 'emergenc', 'urgente', 'atropelad', 'ferid'])) {
     return {
       text:
-        '🚨 Em caso de maus-tratos ou animal em risco, acione as autoridades:\n' +
-        '• Polícia Militar: **190**\n• Disque Denúncia: **181**\n' +
-        '• IBAMA (Linha Verde): **0800 061 8080**\n' +
-        'Maus-tratos a animais são crime (Lei 9.605/98, art. 32). Você também pode registrar a ocorrência aqui na plataforma para alertar ONGs e a comunidade.',
+        '🚨 Au au! Em caso de emergência ou risco à vida do animal, acione imediatamente as autoridades:\n\n' +
+        '• Polícia Militar Ambiental: **190**\n• Disque Denúncia: **181**\n' +
+        '• IBAMA (Linha Verde): **0800 061 8080**\n\n' +
+        'Maus-tratos a cães e gatos é crime punido por lei (Lei 9.605/98). Você também pode registrar a ocorrência no nosso mapa para alertar a comunidade.',
       actions: [
         { type: 'authorities', label: 'Ver contatos das autoridades' },
-        { type: 'navigate', label: 'Registrar denúncia', tab: 'denunciar' },
+        { type: 'navigate', label: 'Registrar denúncia no mapa', tab: 'denunciar' },
       ],
     };
   }
 
   /* --- Saudação --- */
-  if (/^(oi+|ola|opa|eai|e ai|hey|hello|bom dia|boa tarde|boa noite|salve)\b/.test(text) && text.split(' ').length <= 4) {
+  if (/^(oi+|ola|opa|eai|e ai|hey|hello|bom dia|boa tarde|boa noite|salve|scooby)\b/.test(text) && text.split(' ').length <= 4) {
     return getWelcome(ctx);
   }
 
   /* --- Agradecimento / despedida --- */
   if (has(text, ['obrigad', 'valeu', 'agradec', 'brigad'])) {
-    return { text: pick(['Por nada! 💛 Qualquer coisa, é só chamar.', 'Imagina! Os pets agradecem também 🐶🐱']) };
+    return { text: pick(['Au au! Fico muito feliz em ajudar! 🐾 Qualquer coisa é só me chamar!', 'De nada, amigo(a)! Uma lambida carinhosa do Scooby! 🐶❤️']) };
   }
   if (has(text, ['tchau', 'ate mais', 'ate logo', 'flw', 'falou'])) {
-    return { text: 'Até mais! 🐾 Volte sempre que quiser.' };
+    return { text: 'Au au! Até logo! 🐾 Volte sempre para visitar os nossos cãezinhos!' };
   }
 
-  /* --- Ajuda --- */
-  if (has(text, ['ajuda', 'help', 'menu', 'o que voce faz', 'opcoes', 'comandos'])) {
+  /* --- Vacinação de Cães (Requisito Explícito) --- */
+  if (has(text, ['vacin', 'vacina', 'vacinacao', 'vacinar', 'antirrabica', 'v10', 'v8', 'gripe canina', 'dose', 'injetav'])) {
+    const ongsWithVac = ongs.filter(o => o.offersVaccination);
     return {
       text:
-        'Posso te ajudar com:\n' +
-        '• 🐶 Encontrar pets (ex.: "gato filhote em São Paulo")\n' +
-        '• ❤️ Explicar o processo de adoção\n' +
-        '• 🏠 Informações sobre ONGs (ex.: digite o nome da ONG)\n' +
-        '• 💰 Doações financeiras (PIX / transferência)\n' +
-        '• 🦴 Banco de ração (doar ou pedir)\n' +
-        '• 🚨 Denúncias de abandono e maus-tratos\n' +
-        '• 🔐 Login e sua conta',
+        `Au au! A vacinação em dia protege a vida dos cães! 💉🐶\n\n` +
+        `Aqui no PetHub, a vacinação funciona de maneira simples e transparente:\n` +
+        `• **Vinculada às ONGs:** Cada ONG define se oferece ou não vacinação.\n` +
+        `• **Identificação Clara:** Você pode ver quais ONGs oferecem o serviço pelo selo **"✓ Oferece vacinação"** na página de ONGs.\n` +
+        `• **Agendamento Simples:** Ao acessar o perfil de uma ONG com vacinação disponível, clique em **"Agendar Vacinação para Cão"** e informe os dados do seu cão e a data desejada!\n\n` +
+        `Atualmente, **${ongsWithVac.length} ONGs parceiras** oferecem vacinação: ${ongsWithVac.map(o => o.name).join(', ')}.`,
+      actions: [
+        { type: 'navigate', label: 'Ver ONGs que oferecem vacinação', tab: 'ongs' },
+      ],
+      suggestions: ['Como adotar um cachorro?', 'Encontrar uma ONG', 'Como doar ração?'],
+    };
+  }
+
+  /* --- Como falar / entrar em contato com uma ONG (Requisito Explícito) --- */
+  if (has(text, ['falar com ong', 'contato da ong', 'contatar ong', 'falar com a ong', 'telefone da ong', 'whatsapp da ong', 'como falar'])) {
+    return {
+      text:
+        `Au au! Todas as ONGs cadastradas no PetHub têm seus canais de contato abertos! 📞🏠\n\n` +
+        `Para falar com qualquer ONG:\n` +
+        `1. Acesse a aba **"ONGs"** no menu superior.\n` +
+        `2. Clique em **"Ver ONG"** para abrir o perfil institucional da organização.\n` +
+        `3. Você encontrará o **WhatsApp direto**, telefone, e-mail, Instagram e endereço para visita!\n\n` +
+        `Dica do Scooby: use o WhatsApp da ONG para tirar dúvidas rápidas sobre horários e adoções.`,
+      actions: [
+        { type: 'navigate', label: 'Ver lista de ONGs', tab: 'ongs' },
+      ],
+      suggestions: ['Como funciona a vacinação?', 'Como adotar um cachorro?', 'Como doar ração?'],
+    };
+  }
+
+  /* --- Como adotar um cachorro / animal (Requisito Explícito) --- */
+  if (has(text, ['como adot', 'como funciona a adoc', 'processo de adoc', 'requisito', 'adotar um cao', 'adotar um cachorro', 'adotar'])) {
+    return {
+      text:
+        `Au au! Encontrar um novo lar é o maior sonho de todos os nossos cãezinhos! ❤️🐶\n\n` +
+        `Veja como funciona a adoção responsável no PetHub:\n` +
+        `1. **Escolha seu aumigo:** Acesse "Adotar" e navegue pelos cães disponíveis.\n` +
+        `2. **Clique em "Tenho interesse em adotar":** Para adotar, é obrigatório estar logado como usuário.\n` +
+        `3. **Envie seus dados:** Preencha tipo de moradia e mensagem para a ONG.\n` +
+        `4. **A ONG responde:** A entidade analisa seu perfil e entra em contato via WhatsApp/telefone para entrevista e entrega do pet! 🎉\n\n` +
+        `A adoção é gratuita e você pode acompanhar o status direto no seu painel!`,
+      actions: [
+        { type: 'navigate', label: 'Ver cães para adoção', tab: 'adotar' },
+        ...(!ctx.isLoggedIn ? [{ type: 'navigate', label: 'Fazer Login de Usuário', tab: 'login' } as BotAction] : []),
+      ],
+      suggestions: ['Filhotes de cachorro', 'Como funciona a vacinação?', 'Encontrar uma ONG'],
+    };
+  }
+
+  /* --- Encontrar uma ONG (Requisito Explícito) --- */
+  if (has(text, ['encontrar ong', 'ver ongs', 'buscar ong', 'lista de ong', 'quais ongs', 'instituic', 'abrigo'])) {
+    const list = ongs.map(o => `• **${o.name}** (${o.city}/${o.state}) — ${o.offersVaccination ? '💉 Oferece vacinação' : 'Não vacina'}`).join('\n');
+    return {
+      text:
+        `Au au! Temos **${ongs.length} ONGs parceiras** no PetHub cuidando dos nossos amigos peludos:\n\n${list}\n\n` +
+        `Você pode filtrar por cidade e por serviços (vacinação, ração e doações) na aba ONGs!`,
+      actions: [{ type: 'navigate', label: 'Ver todas as ONGs', tab: 'ongs' }],
+      suggestions: ['Como funciona a vacinação?', 'Falar com uma ONG', 'Como doar ração?'],
+    };
+  }
+
+  /* --- Doar ou pedir ração (Requisito Explícito) --- */
+  if (has(text, ['racao', 'comida', 'doar racao', 'pedir racao', 'alimento', 'banco de racao', 'fome'])) {
+    const open = foodItems.filter(i => i.status === 'Aberto');
+    const needs = open.filter(i => i.type === 'need');
+    const available = open.filter(i => i.type === 'available');
+    return {
+      text:
+        `Au au! Uma boa ração deixa o pelo brilhante e o rabinho abanando! 🦴✨\n\n` +
+        `O **Banco de Ração Solidário** do PetHub funciona assim:\n` +
+        `• **Quer Doar Ração?** Veja a lista de ONGs e famílias que precisam e clique em "Doar Ração".\n` +
+        `• **Precisa de Ajuda?** Você pode solicitar um lote de ração disponível para retirada.\n\n` +
+        `Atualmente há **${needs.length} pedidos de ração abertos** e **${available.length} lotes disponíveis** para doação.`,
+      actions: [{ type: 'navigate', label: 'Abrir Banco de Ração', tab: 'banco-racao' }],
+      suggestions: ['Como doar dinheiro?', 'Encontrar uma ONG', 'Como adotar um cachorro?'],
+    };
+  }
+
+  /* --- Denunciar abandono (Requisito Explícito) --- */
+  if (has(text, ['denunc', 'abandon', 'denunciar', 'achei animal', 'vi um cachorro', 'animal na rua', 'mapa de abandono'])) {
+    const active = reports.filter(r => r.status !== 'Expirado').length;
+    return {
+      text:
+        `Au au! Nenhum animal merece ser abandonado na rua! 📍🚨\n\n` +
+        `No PetHub você pode proteger os animais através da denúncia colaborativa:\n` +
+        `1. Clique em **"Denunciar abandono"** e informe onde o animal foi visto, com foto e estado de saúde.\n` +
+        `2. O ponto aparece no **Mapa de Abandonos** para que protetores e ONGs possam agir.\n` +
+        `3. Vizinhos podem **corroborar** o ponto se também virem o animal.\n\n` +
+        `Temos **${active} ocorrências ativas** registradas hoje no mapa.`,
+      actions: [
+        { type: 'navigate', label: 'Registrar denúncia de abandono', tab: 'denunciar' },
+        { type: 'navigate', label: 'Ver Mapa de Abandonos', tab: 'mapa' },
+      ],
+      suggestions: ['Como funciona a vacinação?', 'Encontrar uma ONG', 'Como adotar um cachorro?'],
+    };
+  }
+
+  /* --- Doações financeiras --- */
+  if (has(text, ['doa', 'doar', 'pix', 'dinheiro', 'contribu', 'ajudar financeir', 'transferenc', 'apoiar'])) {
+    const accepting = ongs.filter(o => o.acceptsDonations);
+    return {
+      text:
+        `Au au! A ajuda financeira mantém o trabalho das ONGs vivo! 💰🐕\n\n` +
+        `Temos **${accepting.length} ONGs** preparadas para receber doações seguras via **PIX direto** ou transferência bancária. ` +
+        `O valor vai direto para a conta institucional da entidade para custear vacinas, ração e remédios.`,
+      actions: [{ type: 'navigate', label: 'Ver Meios de Doação', tab: 'doacoes' }],
+      suggestions: ['Banco de ração', 'Ver ONGs', 'Como funciona a vacinação?'],
+    };
+  }
+
+  /* --- Ajuda / Menu geral --- */
+  if (has(text, ['ajuda', 'help', 'menu', 'o que voce faz', 'opcoes', 'comandos', 'quem e voce'])) {
+    return {
+      text:
+        'Au au! Eu sou o **Scooby** e posso te guiar em qualquer área do PetHub:\n\n' +
+        '• 🐶 **Adoção:** Como adotar e quais cães estão disponíveis\n' +
+        '• 💉 **Vacinação:** Como agendar vacina para seu cão nas ONGs\n' +
+        '• 🏠 **ONGs:** Localização, contatos e serviços das organizações\n' +
+        '• 🚨 **Abandono:** Como registrar um relato ou ver o mapa\n' +
+        '• 🦴 **Banco de Ração:** Doar ou pedir alimentos para pets\n' +
+        '• 💰 **Doações:** Como apoiar as entidades parceiras via PIX',
       suggestions: DEFAULT_SUGGESTIONS,
     };
   }
@@ -224,100 +341,27 @@ export function getBotReply(input: string, ctx: BotContext): BotReply {
   const ongByName = ongs.find(o => {
     const n = normalize(o.name);
     if (text.includes(n)) return true;
-    // aceita parte significativa do nome (ex.: "patas" para "Patas Unidas")
-    return n.split(' ').filter(w => w.length > 4 && !['protetores', 'animais', 'associacao'].includes(w)).some(w => text.includes(w));
+    return n.split(' ').filter(w => w.length > 4 && !['protetores', 'animais', 'associacao', 'instituto'].includes(w)).some(w => text.includes(w));
   });
   if (ongByName && !has(text, ['adot', 'quero um', 'quero uma'])) return ongInfo(ongByName, pets);
 
-  /* --- Processo de adoção --- */
-  if (has(text, ['como funciona', 'como adot', 'processo', 'requisito', 'precis', 'document', 'custa', 'pago', 'gratis'])
-      && has(text, ['adoc', 'adot', 'adotar', 'processo', 'requisito'])) {
-    return {
-      text:
-        '❤️ Como adotar no Hub Pet:\n' +
-        '1. Explore os pets disponíveis e abra o perfil do que te encantou.\n' +
-        '2. Clique em **"Tenho interesse em adotar"** (é preciso estar logado).\n' +
-        '3. Preencha o formulário com seus dados e tipo de moradia.\n' +
-        '4. A ONG responsável analisa e entra em contato com você.\n' +
-        '5. Após entrevista e, às vezes, visita, a adoção é finalizada! 🎉\n' +
-        'A adoção é gratuita — algumas ONGs podem pedir uma contribuição voluntária. Você acompanha tudo no seu painel.',
-      actions: [
-        { type: 'navigate', label: 'Ver pets disponíveis', tab: 'adotar' },
-        ...(!ctx.isLoggedIn ? [{ type: 'navigate', label: 'Fazer login', tab: 'login' } as BotAction] : []),
-      ],
-    };
-  }
-
-  /* --- Busca de pets --- */
+  /* --- Busca filtrada de pets --- */
   const filters = extractPetFilters(text, pets);
   const hasFilters = Object.keys(filters).length > 0;
-  if (hasFilters || has(text, ['adot', 'pet', 'animal', 'animais', 'bicho', 'disponive', 'outros pets', 'mascote'])) {
+  if (hasFilters || has(text, ['pet', 'animal', 'animais', 'bicho', 'disponive', 'outros pets', 'mascote', 'cao', 'dog'])) {
     const found = applyPetFilters(pets, filters);
     if (found.length === 0) {
       return {
-        text: `Poxa, não encontrei ${describeFilters(filters)} disponíveis no momento 😢. Que tal ampliar a busca?`,
-        actions: [{ type: 'navigate', label: 'Ver todos os pets', tab: 'adotar' }],
-        suggestions: ['Quero adotar um cachorro', 'Quero adotar um gato'],
+        text: `Au au! Não encontrei ${describeFilters(filters)} disponíveis no momento 😢. Que tal dar uma olhada em todos os nossos amiguinhos?`,
+        actions: [{ type: 'navigate', label: 'Ver todos os cães e gatos', tab: 'adotar' }],
+        suggestions: ['Quero adotar um cachorro', 'Como funciona a vacinação?'],
       };
     }
     return {
-      text: `Encontrei **${found.length}** ${describeFilters(filters)} esperando um lar${found.length > 3 ? '. Aqui vão alguns' : ''}:`,
+      text: `Au au! Encontrei **${found.length}** ${describeFilters(filters)} esperando por você${found.length > 3 ? '. Dá uma olhadinha nesses' : ''}:`,
       pets: found.slice(0, 3),
       actions: [{ type: 'navigate', label: 'Ver todos na página de adoção', tab: 'adotar' }],
-      suggestions: ['Como funciona a adoção?', 'Filhotes', 'Porte pequeno'],
-    };
-  }
-
-  /* --- Lista de ONGs --- */
-  if (has(text, ['ong', 'instituic', 'abrigo', 'protetor', 'associac'])) {
-    const list = ongs.slice(0, 5).map(o => `• **${o.name}** — ${o.city}/${o.state}${o.verified ? ' ✔' : ''}`).join('\n');
-    return {
-      text: `Temos ${ongs.length} ONGs parceiras:\n${list}\nDigite o nome de uma delas para saber mais.`,
-      actions: [{ type: 'navigate', label: 'Ver todas as ONGs', tab: 'ongs' }],
-    };
-  }
-
-  /* --- Banco de ração --- */
-  if (has(text, ['racao', 'comida', 'aliment', 'banco'])) {
-    const open = foodItems.filter(i => i.status === 'Aberto');
-    const needs = open.filter(i => i.type === 'need');
-    const available = open.filter(i => i.type === 'available');
-    const urgent = needs.filter(i => i.urgency === 'Alta');
-    return {
-      text:
-        `🦴 O Banco de Ração conecta quem pode doar com quem precisa.\n` +
-        `Agora há **${needs.length}** pedidos abertos${urgent.length ? ` (${urgent.length} urgentes)` : ''} e **${available.length}** ofertas de ração disponíveis.\n` +
-        (urgent[0] ? `⚠️ Urgente: ${urgent[0].title} — ${urgent[0].quantityKg}kg em ${urgent[0].city}.\n` : '') +
-        `Você pode doar ração para uma ONG ou solicitar ajuda se estiver cuidando de animais.`,
-      actions: [{ type: 'navigate', label: 'Abrir Banco de Ração', tab: 'banco-racao' }],
-    };
-  }
-
-  /* --- Doações financeiras --- */
-  if (has(text, ['doa', 'doar', 'pix', 'dinheiro', 'contribu', 'ajudar financeir', 'transferenc', 'apoiar'])) {
-    const accepting = ongs.filter(o => o.acceptsDonations);
-    return {
-      text:
-        `💰 Você pode apoiar ${accepting.length} ONGs com doações via **PIX** ou **transferência bancária**. ` +
-        `O valor vai direto para a conta da ONG escolhida e ajuda com ração, vacinas, castrações e tratamentos.`,
-      actions: [{ type: 'navigate', label: 'Ir para Doações', tab: 'doacoes' }],
-      suggestions: ['Banco de ração', 'Ver ONGs'],
-    };
-  }
-
-  /* --- Denúncia / mapa de abandono --- */
-  if (has(text, ['denunc', 'abandon', 'rua', 'perdid', 'achei', 'encontrei', 'mapa', 'resgat'])) {
-    const active = reports.filter(r => r.status !== 'Expirado').length;
-    return {
-      text:
-        `📍 Viu um animal abandonado? Registre uma denúncia com foto, endereço e estado de saúde. ` +
-        `Ela aparece no Mapa de Abandono para ONGs e voluntários.\n` +
-        `Hoje há **${active}** ocorrências ativas no mapa. Registros sem novas confirmações expiram após 3 meses, ` +
-        `e você pode **corroborar** uma ocorrência existente se viu o mesmo animal.`,
-      actions: [
-        { type: 'navigate', label: 'Fazer denúncia', tab: 'denunciar' },
-        { type: 'navigate', label: 'Ver mapa', tab: 'mapa' },
-      ],
+      suggestions: ['Como funciona a adoção?', 'Como funciona a vacinação?', 'Encontrar uma ONG'],
     };
   }
 
@@ -325,13 +369,13 @@ export function getBotReply(input: string, ctx: BotContext): BotReply {
   if (has(text, ['login', 'entrar', 'conta', 'cadastr', 'senha', 'logar', 'perfil', 'painel', 'dashboard'])) {
     if (ctx.isLoggedIn) {
       return {
-        text: `Você já está logado${ctx.user ? ` como **${ctx.user.name}**` : ''}. No seu painel você acompanha ${ctx.isONG ? 'os pets da ONG e os interessados' : 'seus pedidos de adoção e denúncias'}.`,
+        text: `Au au! Você já está conectado como **${ctx.user?.name}**! No seu painel você acompanha seus pedidos de adoção, vacinas e denúncias.`,
         actions: [{ type: 'navigate', label: 'Abrir meu painel', tab: ctx.isONG ? 'dashboard-ong' : 'dashboard-usuario' }],
       };
     }
     return {
-      text: 'Para demonstrar interesse em adotar e acompanhar seus pedidos, faça login. Também há contas de demonstração para usuário e ONG.',
-      actions: [{ type: 'navigate', label: 'Fazer login', tab: 'login' }],
+      text: 'Au au! Para adotar um pet ou acompanhar pedidos, acesse a tela de login. Você pode entrar como usuário comum ou como ONG parceira!',
+      actions: [{ type: 'navigate', label: 'Ir para o Login', tab: 'login' }],
     };
   }
 
@@ -339,8 +383,8 @@ export function getBotReply(input: string, ctx: BotContext): BotReply {
   if (has(text, ['cadastrar pet', 'divulgar', 'anunciar', 'colocar para adocao', 'doar meu', 'doar um pet'])) {
     return {
       text: ctx.isONG
-        ? 'Pelo painel da ONG você pode cadastrar, editar e acompanhar os pets e os interessados.'
-        : 'Apenas ONGs cadastradas podem anunciar pets para adoção. Se você precisa doar um animal, procure uma ONG parceira.',
+        ? 'Au au! Pelo painel da ONG você pode cadastrar, editar e acompanhar os pets e interessados.'
+        : 'Au au! Apenas ONGs parceiras cadastradas podem anunciar animais para adoção. Se precisa doar um animal, entre em contato com uma ONG parceira!',
       actions: ctx.isONG
         ? [{ type: 'navigate', label: 'Painel da ONG', tab: 'dashboard-ong' }]
         : [{ type: 'navigate', label: 'Ver ONGs', tab: 'ongs' }],
@@ -350,8 +394,8 @@ export function getBotReply(input: string, ctx: BotContext): BotReply {
   /* --- Fallback --- */
   return {
     text: pick([
-      'Hmm, não entendi muito bem 🤔. Você pode reformular ou escolher uma das opções abaixo:',
-      'Desculpe, ainda estou aprendendo! 🐶 Tente uma dessas opções:',
+      'Au au? Não entendi direito com essas orelhas caídas! 🐶 Você pode reformular ou clicar em um dos botões abaixo:',
+      'Au au! Ainda sou um filhote aprendendo, mas posso te ajudar com adoção, vacinação, ONGs e ração! Escolha uma opção:',
     ]),
     suggestions: DEFAULT_SUGGESTIONS,
   };

@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import type { Pet, ONG, AbandonmentReport, FoodBankItem } from '../types';
 import { useAuth } from '../context/AuthContext';
 import { getBotReply, getWelcome, type BotAction, type BotReply } from '../chatbot/botEngine';
-import { ChevronRight, PawPrint, Send, X } from './Icons';
+import { ChevronRight, PawPrint, Send, X, ScoobyDogIcon } from './Icons';
 import './ChatBot.css';
 
 interface ChatMessage extends BotReply {
@@ -140,10 +140,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({
       {open && (
         <section className="chatbot-window" role="dialog" aria-label="Assistente virtual Scooby">
           <header className="chatbot-header">
-            <div className="chatbot-avatar"><PawPrint size={20} /></div>
+            <div className="chatbot-avatar">
+              <ScoobyDogIcon size={34} />
+            </div>
             <div className="chatbot-title">
-              <strong>Scooby</strong>
-              <span><i className="chatbot-online" /> Assistente do Hub Pet</span>
+              <strong>Scooby • Mascote PetHub</strong>
+              <span><i className="chatbot-online" /> Au au! Pronto para ajudar</span>
             </div>
             <button className="chatbot-icon-btn chatbot-reset" onClick={resetChat} title="Nova conversa">↺</button>
             <button className="chatbot-icon-btn" onClick={() => setOpen(false)} aria-label="Fechar chat"><X size={18} /></button>
@@ -225,9 +227,10 @@ export const ChatBot: React.FC<ChatBotProps> = ({
       <button
         className={`chatbot-fab ${open ? 'is-open' : ''}`}
         onClick={toggleOpen}
-        aria-label={open ? 'Fechar assistente' : 'Abrir assistente virtual'}
+        aria-label={open ? 'Fechar Scooby' : 'Abrir chat com o mascote Scooby'}
+        title="Fale com o mascote Scooby 🐾"
       >
-        {open ? <X size={24} /> : <PawPrint size={26} />}
+        {open ? <X size={24} /> : <ScoobyDogIcon size={36} />}
         {!open && unread && <span className="chatbot-badge">1</span>}
       </button>
     </>

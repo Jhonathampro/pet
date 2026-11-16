@@ -17,19 +17,12 @@ interface AuthContextType {
   isGuest: boolean;
   login: (email: string, pass: string) => Promise<LoginResult>;
   loginAsGuest: () => void;
-  switchDemoRole: (targetRole: 'user' | 'ong' | 'guest') => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const USER_KEY = 'pethub_user';
-
-// Contas de demonstração criadas pelo seed da API (npm run db:seed).
-const DEMO_ACCOUNTS = {
-  user: { email: 'lucas@gmail.com', password: 'chave123' },
-  ong: { email: 'SalvaPet@gmail.com', password: 'chave123' },
-};
 
 function readStoredUser(): User | null {
   if (!getToken()) return null;
@@ -78,16 +71,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginAsGuest = logout;
 
-  const switchDemoRole = async (targetRole: 'user' | 'ong' | 'guest') => {
-    if (targetRole === 'guest') {
-      logout();
-      return;
-    }
-    const demo = DEMO_ACCOUNTS[targetRole];
-    const result = await login(demo.email, demo.password);
-    if (!result.success) alert(result.message);
-  };
-
   return (
     <AuthContext.Provider
       value={{
@@ -99,7 +82,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         isGuest: role === 'guest',
         login,
         loginAsGuest,
-        switchDemoRole,
         logout,
       }}
     >

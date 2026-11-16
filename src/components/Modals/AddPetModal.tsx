@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Pet, PetSpecies, PetSex, PetStatus, PetSize } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { DataStore } from '../../data/mockData';
+import { DataStore, errorMessage } from '../../data/store';
 import { Plus, Edit, X, Camera, Check, PawPrint } from '../Icons';
 
 interface AddPetModalProps {
@@ -87,7 +87,7 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const personality = personalityInput
@@ -98,6 +98,7 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
     const ongId = user?.ongId || 'ong-1';
     const ongName = user?.name || 'ONG Patas que Salvam';
 
+    try {
     if (petToEdit) {
       const updated: Pet = {
         ...petToEdit,
@@ -117,7 +118,7 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
         neutered,
         dewormed
       };
-      DataStore.updatePet(updated);
+      await DataStore.updatePet(updated);
     } else {
       const newPet: Pet = {
         id: `pet-${Date.now()}`,
@@ -143,7 +144,11 @@ export const AddPetModal: React.FC<AddPetModalProps> = ({
         interestedCount: 0,
         createdAt: new Date().toISOString().split('T')[0]
       };
-      DataStore.addPet(newPet);
+      await DataStore.addPet(newPet);
+    }
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
     }
 
     onSuccess();

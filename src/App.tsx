@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
-import { DataStore } from './data/mockData';
+import { DataStore, errorMessage } from './data/store';
 import type { Pet, ONG, AbandonmentReport, FoodBankItem } from './types';
 
 // Components
@@ -33,7 +33,11 @@ import { NGODashboard } from './pages/NGODashboard';
 import { LoginPage } from './pages/LoginPage';
 
 function MainApp() {
-  const { isLoggedIn, isONG } = useAuth();
+  const { isONG, user } = useAuth();
+
+  // Carga inicial dos dados da API
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState('');
 
   // Navigation State
   const [currentTab, setCurrentTab] = useState<string>('home');
@@ -65,16 +69,25 @@ function MainApp() {
   const [addPetOpen, setAddPetOpen] = useState(false);
   const [petToEdit, setPetToEdit] = useState<Pet | null>(null);
 
-  const refreshData = () => {
+  // Busca os dados na API e atualiza a tela
+  const refreshData = async () => {
+    try {
+      await DataStore.load();
+      setLoadError('');
+    } catch (err) {
+      setLoadError(errorMessage(err));
+    }
     setPets(DataStore.getPets());
     setONGs(DataStore.getONGs());
     setReports(DataStore.getReports());
     setFoodItems(DataStore.getFoodItems());
+    setLoaded(true);
   };
 
+  // recarrega ao trocar de aba e ao entrar/sair de uma conta
   useEffect(() => {
     refreshData();
-  }, [currentTab]);
+  }, [currentTab, user?.id]);
 
   // Handle navigation — bloqueia rotas de usuário para ONG e vice-versa
   const handleNavigate = (tab: string, meta?: any) => {
@@ -128,6 +141,20 @@ function MainApp() {
     }
     setAuthoritiesModalOpen(true);
   };
+
+  // Antes da primeira resposta da API (ou se ela estiver fora do ar) não há o que mostrar
+  if (!loaded || (loadError && ongs.length === 0)) {
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '24px', textAlign: 'center' }}>
+        <p>{loadError || 'Carregando...'}</p>
+        {loadError && (
+          <button className="btn btn-primary" onClick={() => refreshData()}>
+            Tentar novamente
+          </button>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>

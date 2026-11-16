@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { DataStore } from '../data/mockData';
+import { DataStore, errorMessage } from '../data/store';
 import type { Pet, ONG, AdoptionInterest, VaccinationRequest } from '../types';
 import { 
   Building2, 
@@ -68,32 +68,37 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
   const [bankAccount, setBankAccount] = useState(currentONG.bank.account);
   const [settingsSaved, setSettingsSaved] = useState(false);
 
+  // grava na API e recarrega os dados; se a API recusar, mostra o motivo
+  const save = async (action: () => Promise<unknown>): Promise<boolean> => {
+    try {
+      await action();
+    } catch (err) {
+      alert(errorMessage(err));
+      return false;
+    }
+    onRefresh();
+    return true;
+  };
+
   const handleDeletePet = (petId: string, petName: string) => {
     if (window.confirm(`Tem certeza que deseja remover ${petName} do catálogo?`)) {
-      DataStore.deletePet(petId);
-      onRefresh();
+      save(() => DataStore.deletePet(petId));
     }
   };
 
   const handleUpdatePetStatus = (pet: Pet, newStatus: Pet['status']) => {
-    DataStore.updatePet({
-      ...pet,
-      status: newStatus
-    });
-    onRefresh();
+    save(() => DataStore.updatePet({ ...pet, status: newStatus }));
   };
 
   const handleUpdateInterestStatus = (id: string, newStatus: AdoptionInterest['status']) => {
-    DataStore.updateAdoptionInterestStatus(id, newStatus);
-    onRefresh();
+    save(() => DataStore.updateAdoptionInterestStatus(id, newStatus));
   };
 
   const handleUpdateVaccinationStatus = (id: string, newStatus: VaccinationRequest['status']) => {
-    DataStore.updateVaccinationRequestStatus(id, newStatus);
-    onRefresh();
+    save(() => DataStore.updateVaccinationRequestStatus(id, newStatus));
   };
 
-  const handleSaveSettings = (e: React.FormEvent) => {
+  const handleSaveSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     const updated: ONG = {
       ...currentONG,
@@ -108,10 +113,9 @@ export const NGODashboard: React.FC<NGODashboardProps> = ({
         account: bankAccount
       }
     };
-    DataStore.updateONG(updated);
+    if (!(await save(() => DataStore.updateONG(updated)))) return;
     setSettingsSaved(true);
     setTimeout(() => setSettingsSaved(false), 3000);
-    onRefresh();
   };
 
   return (

@@ -1,6 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { User, UserRole } from '../types';
-import { INITIAL_USER, INITIAL_ONG_USER, DataStore } from '../data/mockData';
+import { api, setToken, getToken, SESSION_EXPIRED_EVENT } from '../data/api';
+
+interface LoginResult {
+  success: boolean;
+  message?: string;
+  user?: User;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -9,63 +15,77 @@ interface AuthContextType {
   isONG: boolean;
   isUser: boolean;
   isGuest: boolean;
-  login: (email: string, pass: string) => { success: boolean; message?: string };
+  login: (email: string, pass: string) => Promise<LoginResult>;
   loginAsGuest: () => void;
-  switchDemoRole: (targetRole: 'user' | 'ong' | 'guest') => void;
+  switchDemoRole: (targetRole: 'user' | 'ong' | 'guest') => Promise<void>;
   logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const USER_KEY = 'pethub_user';
+
+// Contas de demonstração criadas pelo seed da API (npm run db:seed).
+const DEMO_ACCOUNTS = {
+  user: { email: 'lucas@gmail.com', password: 'chave123' },
+  ong: { email: 'SalvaPet@gmail.com', password: 'chave123' },
+};
+
+function readStoredUser(): User | null {
+  if (!getToken()) return null;
+  try {
+    return JSON.parse(localStorage.getItem(USER_KEY) ?? 'null');
+  } catch {
+    return null;
+  }
+}
+
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(() => {
-    return DataStore.getCurrentUser();
-  });
+  const [user, setUser] = useState<User | null>(readStoredUser);
 
   useEffect(() => {
-    DataStore.setCurrentUser(user);
+    if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
+    else localStorage.removeItem(USER_KEY);
   }, [user]);
+
+  // a API recusou o token (expirou) -> volta a ser visitante
+  useEffect(() => {
+    const onExpired = () => setUser(null);
+    window.addEventListener(SESSION_EXPIRED_EVENT, onExpired);
+    return () => window.removeEventListener(SESSION_EXPIRED_EVENT, onExpired);
+  }, []);
 
   const role: UserRole = user ? user.role : 'guest';
 
-  const login = (email: string, pass: string): { success: boolean; message?: string } => {
-    const cleanEmail = email.trim();
-
-    // Regra explícita de validação com IF para o MVP:
-    // Usuário comum: lucas@gmail.com / chave123 -> tipo: usuario, nome: Lucas
-    if (cleanEmail.toLowerCase() === 'lucas@gmail.com' && pass === 'chave123') {
-      setUser(INITIAL_USER);
-      return { success: true };
-    }
-
-    // ONG: SalvaPet@gmail.com / chave123 -> tipo: ong, nome: SalvaPet
-    if (cleanEmail.toLowerCase() === 'salvapet@gmail.com' && pass === 'chave123') {
-      setUser(INITIAL_ONG_USER);
-      return { success: true };
-    }
-
-    return {
-      success: false,
-      message: 'E-mail ou senha incorretos. Verifique os dados digitados e tente novamente.'
-    };
-  };
-
-  const loginAsGuest = () => {
-    setUser(null);
-  };
-
-  const switchDemoRole = (targetRole: 'user' | 'ong' | 'guest') => {
-    if (targetRole === 'user') {
-      setUser(INITIAL_USER);
-    } else if (targetRole === 'ong') {
-      setUser(INITIAL_ONG_USER);
-    } else {
-      setUser(null);
+  const login = async (email: string, pass: string): Promise<LoginResult> => {
+    try {
+      const session = await api<{ token: string; user: User }>('POST', '/auth/login', {
+        email: email.trim(),
+        password: pass,
+      });
+      setToken(session.token); // antes do setUser: o App recarrega os dados ao mudar o usuário
+      setUser(session.user);
+      return { success: true, user: session.user };
+    } catch (err) {
+      return { success: false, message: err instanceof Error ? err.message : 'Falha no login.' };
     }
   };
 
   const logout = () => {
+    setToken(null);
     setUser(null);
+  };
+
+  const loginAsGuest = logout;
+
+  const switchDemoRole = async (targetRole: 'user' | 'ong' | 'guest') => {
+    if (targetRole === 'guest') {
+      logout();
+      return;
+    }
+    const demo = DEMO_ACCOUNTS[targetRole];
+    const result = await login(demo.email, demo.password);
+    if (!result.success) alert(result.message);
   };
 
   return (

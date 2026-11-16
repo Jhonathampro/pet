@@ -16,37 +16,29 @@ export const LoginPage: React.FC<LoginPageProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
   const [showSignupNotice, setShowSignupNotice] = useState(false);
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+  // faz o login na API e navega conforme o perfil da conta
+  const doLogin = async (loginEmail: string, loginPassword: string) => {
     setErrorMessage('');
     setShowSignupNotice(false);
 
-    const res = login(email, password);
-    if (res.success) {
-      if (email.toLowerCase().includes('salvapet')) {
-        onSuccessNavigate('ong');
-      } else {
-        onSuccessNavigate('user');
-      }
+    const res = await login(loginEmail, loginPassword);
+    if (res.success && res.user) {
+      onSuccessNavigate(res.user.role);
     } else {
       setErrorMessage(res.message || 'Credenciais inválidas.');
     }
   };
 
+  const handleLoginSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    doLogin(email, password);
+  };
+
   const handleQuickLogin = (type: 'user' | 'ong') => {
-    setShowSignupNotice(false);
-    setErrorMessage('');
-    if (type === 'user') {
-      setEmail('lucas@gmail.com');
-      setPassword('chave123');
-      login('lucas@gmail.com', 'chave123');
-      onSuccessNavigate('user');
-    } else {
-      setEmail('SalvaPet@gmail.com');
-      setPassword('chave123');
-      login('SalvaPet@gmail.com', 'chave123');
-      onSuccessNavigate('ong');
-    }
+    const demoEmail = type === 'user' ? 'lucas@gmail.com' : 'SalvaPet@gmail.com';
+    setEmail(demoEmail);
+    setPassword('chave123');
+    doLogin(demoEmail, 'chave123');
   };
 
   const handleGuest = () => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { DataStore } from '../data/mockData';
+import { DataStore, errorMessage } from '../data/store';
 import { AbandonmentReport } from '../types';
 import { 
   AlertTriangle, 
@@ -45,7 +45,7 @@ export const ReportAbandonmentPage: React.FC<ReportAbandonmentPageProps> = ({
   );
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const newReport: AbandonmentReport = {
@@ -68,7 +68,12 @@ export const ReportAbandonmentPage: React.FC<ReportAbandonmentPageProps> = ({
       createdAt: new Date().toISOString()
     };
 
-    DataStore.addReport(newReport);
+    try {
+      await DataStore.addReport(newReport);
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
+    }
     setSubmitted(true);
   };
 

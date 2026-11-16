@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ONG } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { DataStore } from '../../data/mockData';
+import { DataStore, errorMessage } from '../../data/store';
 import { 
   DollarSign, 
   Copy, 
@@ -42,10 +42,11 @@ export const FinancialDonateModal: React.FC<FinancialDonateModalProps> = ({
     setTimeout(() => setCopied(false), 2500);
   };
 
-  const handleConfirmDonation = () => {
+  const handleConfirmDonation = async () => {
     if (currentAmount <= 0) return;
 
-    DataStore.addDonation({
+    try {
+    await DataStore.addDonation({
       id: `don-${Date.now()}`,
       ongId: ong.id,
       ongName: ong.name,
@@ -56,6 +57,10 @@ export const FinancialDonateModal: React.FC<FinancialDonateModalProps> = ({
       method: 'PIX',
       status: 'Confirmado'
     });
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
+    }
 
     setConfirmed(true);
     if (onSuccess) onSuccess();

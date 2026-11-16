@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { DataStore } from '../data/mockData';
+import { DataStore } from '../data/store';
 import { 
   Heart, 
   AlertTriangle, 

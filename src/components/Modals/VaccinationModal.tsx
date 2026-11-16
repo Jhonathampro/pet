@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import type { ONG, PetSize, VaccinationRequest } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { DataStore } from '../../data/mockData';
+import { DataStore, errorMessage } from '../../data/store';
 import { Syringe, X, CheckCircle2, Calendar, Clock, MapPin, AlertCircle } from '../Icons';
 
 interface VaccinationModalProps {
@@ -43,7 +43,7 @@ export const VaccinationModal: React.FC<VaccinationModalProps> = ({
     onClose();
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     const protocol = `VAC-2026-${Math.floor(1000 + Math.random() * 9000)}`;
@@ -66,8 +66,13 @@ export const VaccinationModal: React.FC<VaccinationModalProps> = ({
       createdAt: new Date().toISOString(),
     };
 
-    DataStore.addVaccinationRequest(newRequest);
-    setSubmittedRequest(newRequest);
+    try {
+      // o protocolo exibido é o gerado pelo servidor
+      setSubmittedRequest(await DataStore.addVaccinationRequest(newRequest));
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
+    }
     onSuccess();
   };
 

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { AbandonmentReport } from '../../types';
-import { DataStore } from '../../data/mockData';
+import { DataStore, errorMessage } from '../../data/store';
 import { AlertTriangle, CheckCircle2, X, Send, ShieldCheck } from '../Icons';
 
 interface CorroborateModalProps {
@@ -22,9 +22,14 @@ export const CorroborateModal: React.FC<CorroborateModalProps> = ({
 
   if (!isOpen || !report) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    DataStore.corroborateReport(report.id);
+    try {
+      await DataStore.corroborateReport(report.id);
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
+    }
     setSubmitted(true);
     onSuccess();
   };

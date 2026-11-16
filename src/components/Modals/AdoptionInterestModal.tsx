@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Pet } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { DataStore } from '../../data/mockData';
+import { DataStore, errorMessage } from '../../data/store';
 import { Heart, CheckCircle2, X, Phone, Mail, User as UserIcon, Home, Send } from '../Icons';
 
 interface AdoptionInterestModalProps {
@@ -41,11 +41,12 @@ export const AdoptionInterestModal: React.FC<AdoptionInterestModalProps> = ({
 
   if (!isOpen || !pet) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name || !email || !phone) return;
 
-    DataStore.addAdoptionInterest({
+    try {
+    await DataStore.addAdoptionInterest({
       id: `int-${Date.now()}`,
       petId: pet.id,
       petName: pet.name,
@@ -60,6 +61,10 @@ export const AdoptionInterestModal: React.FC<AdoptionInterestModalProps> = ({
       date: new Date().toISOString().split('T')[0],
       status: 'Em análise'
     });
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
+    }
 
     setSubmitted(true);
     if (onSuccess) onSuccess();

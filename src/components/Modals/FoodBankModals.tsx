@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FoodBankItem } from '../../types';
 import { useAuth } from '../../context/AuthContext';
-import { DataStore } from '../../data/mockData';
+import { DataStore, errorMessage } from '../../data/store';
 import { Bone, CheckCircle2, X, Send, MapPin, Building2, User } from '../Icons';
 
 interface DonateFoodModalProps {
@@ -38,12 +38,13 @@ export const DonateFoodModal: React.FC<DonateFoodModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    try {
     // If it's a new offering
     if (!targetItem) {
-      DataStore.addFoodItem({
+      await DataStore.addFoodItem({
         id: `food-${Date.now()}`,
         type: 'available',
         title: `Disponibilização de ${quantityKg} kg de ${brandOrType}`,
@@ -59,6 +60,19 @@ export const DonateFoodModal: React.FC<DonateFoodModalProps> = ({
         date: new Date().toISOString().split('T')[0],
         status: 'Aberto'
       });
+    } else {
+      // doação direcionada a um pedido existente
+      await DataStore.respondToFoodItem(targetItem.id, {
+        name: donorName,
+        phone,
+        quantityKg: Number(quantityKg),
+        foodType: brandOrType,
+        notes
+      });
+    }
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
     }
 
     setSubmitted(true);
@@ -253,11 +267,12 @@ export const RequestFoodModal: React.FC<RequestFoodModalProps> = ({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    try {
     if (!targetItem) {
-      DataStore.addFoodItem({
+      await DataStore.addFoodItem({
         id: `food-${Date.now()}`,
         type: 'need',
         title: `Pedido de auxílio: ${quantityKg} kg de ${foodType}`,
@@ -274,6 +289,19 @@ export const RequestFoodModal: React.FC<RequestFoodModalProps> = ({
         urgency: 'Média',
         status: 'Aberto'
       });
+    } else {
+      // pedido de um lote que alguém disponibilizou
+      await DataStore.respondToFoodItem(targetItem.id, {
+        name,
+        phone,
+        quantityKg: Number(quantityKg),
+        foodType,
+        notes: reason
+      });
+    }
+    } catch (err) {
+      alert(errorMessage(err));
+      return;
     }
 
     setSubmitted(true);
